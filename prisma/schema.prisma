@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"  // Ajusta esto según tu base de datos
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  lastName    String
+  phone       String
+  email       String @unique
+  password    String
+  profileImg  String?
+  role        String
+  profile     Profile?
+  cart        Cart?
+  purchases   Purchase[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  bio       String?
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Cart {
+  id        String   @id @default(uuid())
+  status    String
+  total     Float
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  cartLines CartLine[]
+  sale      Sale?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model CartLine {
+  id        String   @id @default(uuid())
+  quantity  Int
+  subtotal  Float
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Sale {
+  id        String   @id @default(uuid())
+  date      DateTime
+  cartId    String   @unique
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Purchase {
+  id        String   @id @default(uuid())
+  date      DateTime
+  total     Float
+  invoiceUrl String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  purchaseLines PurchaseLine[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model PurchaseLine {
+  id        String   @id @default(uuid())
+  quantity  Int
+  subtotal  Float
+  purchaseId String
+  purchase  Purchase @relation(fields: [purchaseId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Product {
+  id        String   @id @default(uuid())
+  name      String
+  price     Float
+  stock     Int
+  categoryId String
+  category  Category @relation(fields: [categoryId], references: [id])
+  images    ProductImage[]
+  cartLines CartLine[]
+  purchaseLines PurchaseLine[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  url       String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  products  Product[]
+  suppliers Supplier[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  email     String
+  taxId     String
+  categoryId String
+  category  Category @relation(fields: [categoryId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Report {
+  id        String   @id @default(uuid())
+  reportUrl String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
