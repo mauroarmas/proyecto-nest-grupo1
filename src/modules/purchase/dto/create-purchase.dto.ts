@@ -26,6 +26,10 @@ import {
     @IsNotEmpty()
     userId: string;
 
+    @IsUUID()
+    @IsNotEmpty()
+    supplierId: string;
+
     @IsArray()
     @IsNotEmpty()
     purchaseLines: CreatePurchaseLineDto[];

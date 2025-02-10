@@ -11,8 +11,13 @@ export class PurchaseService {
     try {
       const { purchaseLines } = createPurchaseDto;
       const userId = createPurchaseDto.userId;
+      const supplierId = createPurchaseDto.supplierId;
       let total = 0;
       let productsPrices = [];
+
+      const supplier = await this.prisma.supplier.findUnique({
+        where: { id: supplierId, isDeleted: false },
+      })
 
       //Verificacion de existencia y stock de productos
       for (const line of purchaseLines) {
@@ -25,6 +30,12 @@ export class PurchaseService {
           );
         }
 
+        if(product.categoryId !== supplier.categoryId){
+          throw new Error(
+            `Producto con ID ${line.productId} no pertenece a la categoria del proveedor`,
+          );
+        }
+
         total += product.price * line.quantity;
         productsPrices.push(product.price);
       }
@@ -33,6 +44,7 @@ export class PurchaseService {
         data: {
           userId,
           total,
+          supplierId,
           purchaseLines: {
             create: purchaseLines.map((line, index) => ({
               productId: line.productId,
@@ -62,18 +74,20 @@ export class PurchaseService {
   }
 
   findAll() {
-    return this.prisma.purchase.findMany();
+    return this.prisma.purchase.findMany({ include: { purchaseLines: { include: { product: true } } } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} purchase`;
+  findOne(id: string) {
+    return this.prisma.purchase.findUnique({
+      where: { id }, include: { purchaseLines: { include: { product: true } } } 
+    });
   }
 
   update(id: number, updatePurchaseDto: UpdatePurchaseDto) {
     return `This action updates a #${id} purchase`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} purchase`;
+  remove(id: string) {
+    return this.prisma.purchase.delete({ where: { id } });
   }
 }

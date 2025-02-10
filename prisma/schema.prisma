@@ -80,6 +80,8 @@ model Purchase {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
+  supplier  Supplier @relation(fields: [supplierId], references: [id])
+  supplierId    String
 }
 
 model PurchaseLine {
@@ -138,6 +140,7 @@ model Supplier {
   taxId     String
   categoryId String
   category  Category @relation(fields: [categoryId], references: [id])
+  purchases Purchase[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
