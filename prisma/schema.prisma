@@ -72,7 +72,6 @@ model Sale {
 
 model Purchase {
   id        String   @id @default(uuid())
-  date      DateTime
   total     Float
   invoiceUrl String?
   userId    String
