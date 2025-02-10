@@ -3,25 +3,31 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"  // Ajusta esto según tu base de datos
+  provider = "postgresql" // Ajusta esto según tu base de datos
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  SUPERADMIN
+  USER
+}
+
 model User {
-  id          String   @id @default(uuid())
-  name        String
-  lastName    String
-  phone       String
-  email       String @unique
-  password    String
-  profileImg  String?
-  role        String
-  profile     Profile?
-  cart        Cart?
-  purchases   Purchase[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isDeleted   Boolean  @default(false)
+  id         String     @id @default(uuid())
+  name       String
+  lastName   String
+  phone      String
+  email      String     @unique
+  password   String
+  address    String
+  profileImg String?
+  role       Role       @default(USER)
+  profile    Profile?
+  cart       Cart?
+  purchases  Purchase[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  isDeleted  Boolean    @default(false)
 }
 
 model Profile {
@@ -35,16 +41,16 @@ model Profile {
 }
 
 model Cart {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   status    String
   total     Float
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
   cartLines CartLine[]
   sale      Sale?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isDeleted Boolean    @default(false)
 }
 
 model CartLine {
@@ -71,44 +77,44 @@ model Sale {
 }
 
 model Purchase {
-  id        String   @id @default(uuid())
-  date      DateTime
-  total     Float
-  invoiceUrl String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id            String         @id @default(uuid())
+  date          DateTime
+  total         Float
+  invoiceUrl    String?
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
   purchaseLines PurchaseLine[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  isDeleted     Boolean        @default(false)
 }
 
 model PurchaseLine {
-  id        String   @id @default(uuid())
-  quantity  Int
-  subtotal  Float
+  id         String   @id @default(uuid())
+  quantity   Int
+  subtotal   Float
   purchaseId String
-  purchase  Purchase @relation(fields: [purchaseId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
+  purchase   Purchase @relation(fields: [purchaseId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDeleted  Boolean  @default(false)
 }
 
 model Product {
-  id        String   @id @default(uuid())
-  name      String
-  price     Float
-  stock     Int
-  categoryId String
-  category  Category @relation(fields: [categoryId], references: [id])
-  images    ProductImage[]
-  cartLines CartLine[]
+  id            String         @id @default(uuid())
+  name          String
+  price         Float
+  stock         Int
+  categoryId    String
+  category      Category       @relation(fields: [categoryId], references: [id])
+  images        ProductImage[]
+  cartLines     CartLine[]
   purchaseLines PurchaseLine[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  isDeleted     Boolean        @default(false)
 }
 
 model ProductImage {
@@ -122,26 +128,26 @@ model ProductImage {
 }
 
 model Category {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
   products  Product[]
   suppliers Supplier[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isDeleted Boolean    @default(false)
 }
 
 model Supplier {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String
-  email     String
-  taxId     String
+  id         String   @id @default(uuid())
+  name       String
+  phone      String
+  email      String
+  taxId      String
   categoryId String
-  category  Category @relation(fields: [categoryId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
+  category   Category @relation(fields: [categoryId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDeleted  Boolean  @default(false)
 }
 
 model Report {
