@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { envValidationSchema } from 'src/config/env-validation.config';
 import { PurchaseModule } from '../purchase/purchase.module';
+import { SuppliersModule } from '../suppliers/suppliers.module';
 import i18nModuleConfig from 'src/config/i18n.config';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
@@ -19,6 +20,8 @@ import { UsersModule } from '../users/users.module';
     PurchaseModule,
     i18nModuleConfig(),
     PrismaModule,
+    PurchaseModule,
+    SuppliersModule,
     AuthModule,
     UsersModule,
   ],
