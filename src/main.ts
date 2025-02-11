@@ -3,17 +3,27 @@ import { corsOptions } from './config/cors.config';
 import { ConfigService } from '@nestjs/config';
 import { ClassSerializerInterceptor, Logger } from '@nestjs/common';
 import { AppModule } from './modules/app/app.module';
+import { I18nValidationPipe } from 'nestjs-i18n';
+import { ValidationsErrorExceptionFilter } from './common/middlewares';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
   app.enableCors(corsOptions);
   app.setGlobalPrefix('api/v1');
-
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(
-    app.get(Reflector), //intercepta las peticiones
-    {excludePrefixes: ['password', 'createdAt', 'updatedAt', 'isDeleted']} //objeto con las opciones (esta excluye la propiedad password)
-  )); //intercepta las respuestas
+  app.useGlobalPipes(
+    new I18nValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector), {
+      excludePrefixes: ['password', 'createdAt', 'updatedAt', 'isDeleted'],
+      ignoreDecorators: true,
+    }),
+  );
+  app.useGlobalFilters( new ValidationsErrorExceptionFilter());
 
   const configService = app.get(ConfigService);
 

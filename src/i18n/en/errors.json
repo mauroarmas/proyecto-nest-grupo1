@@ -1,0 +1,5 @@
+{
+    "isNotEmpty": "{property}: The field is required",
+    "IsString": "{property} Must be a string",
+    "isEmail": "The field must be a valid email"
+}
