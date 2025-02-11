@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
-import { UpdatePurchaseDto } from './dto/update-purchase.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -81,10 +80,6 @@ export class PurchaseService {
     return this.prisma.purchase.findUnique({
       where: { id }, include: { purchaseLines: { include: { product: true } } } 
     });
-  }
-
-  update(id: number, updatePurchaseDto: UpdatePurchaseDto) {
-    return `This action updates a #${id} purchase`;
   }
 
   remove(id: string) {
