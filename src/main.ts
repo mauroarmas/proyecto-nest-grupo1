@@ -30,7 +30,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('API NestJs')
-    .setDescription('Curso Backend avanzado')
+    .setDescription('Proyecto final NestJs')
     .setVersion('1.0')
     .addTag('Proyecto 1')
     .build();
