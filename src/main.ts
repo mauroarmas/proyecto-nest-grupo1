@@ -26,7 +26,7 @@ async function bootstrap() {
       ignoreDecorators: true,
     }),
   );
-  app.useGlobalFilters( new ValidationsErrorExceptionFilter());
+  app.useGlobalFilters( new ValidationsExceptionFilter());
 
   app.useGlobalInterceptors(new LoggerInterceptor())
 
