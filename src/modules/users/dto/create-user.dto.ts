@@ -37,3 +37,7 @@ export class CreateUserDto {
 
     profileImg?: string;
 }
+
+
+export class UpdateUserDto extends PartialType(CreateUserDto) {}
+

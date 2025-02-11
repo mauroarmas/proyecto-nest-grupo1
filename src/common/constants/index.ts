@@ -1,6 +1,13 @@
-const env = process.env
 
-export const messaginConfig ={
+const env = process.env;
+
+export enum RoleEnum {
+  SUPERADMIN = 'SUPERADMIN',
+  USER = 'USER',
+}
+
+
+export const messagingConfig = {
   emailSender: env.EMAIL_SENDER,
   apiKey: env.MAILJET_API_KEY,
   secret: env.MAILJET_SECRET_KEY,
@@ -23,3 +30,4 @@ export const awsConfig = {
     socket: parseInt(env.AWS_SOCKET_TIMEOUT)
   }
 } as const
+

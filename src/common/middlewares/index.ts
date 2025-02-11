@@ -2,7 +2,6 @@ import { Injectable, ValidationError } from "@nestjs/common";
 import { I18nValidationExceptionFilter } from "nestjs-i18n";
 
 @Injectable()
-
 export class ValidationsExceptionFilter extends I18nValidationExceptionFilter {
     constructor() {
         super({

@@ -13,21 +13,21 @@ enum Role {
 }
 
 model User {
-  id         String     @id @default(uuid())
-  name       String
-  lastName   String
-  phone      String
-  email      String     @unique
-  password   String
-  address    String
-  profileImg String?
-  role       Role       @default(USER)
-  profile    Profile?
-  cart       Cart?
-  purchases  Purchase[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  isDeleted  Boolean    @default(false)
+  id          String   @id @default(uuid())
+  name        String
+  lastName    String
+  address     String 
+  phone       String
+  email       String @unique
+  password    String
+  profileImg  String?
+  role        Role       @default(USER)
+  profile     Profile?
+  cart        Cart?
+  purchases   Purchase[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
 }
 
 model Profile {
@@ -77,16 +77,17 @@ model Sale {
 }
 
 model Purchase {
-  id            String         @id @default(uuid())
-  date          DateTime
-  total         Float
-  invoiceUrl    String?
-  userId        String
-  user          User           @relation(fields: [userId], references: [id])
+  id        String   @id @default(uuid())
+  total     Float
+  invoiceUrl String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   purchaseLines PurchaseLine[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  isDeleted     Boolean        @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  supplier  Supplier @relation(fields: [supplierId], references: [id])
+  supplierId    String
 }
 
 model PurchaseLine {
@@ -144,10 +145,11 @@ model Supplier {
   email      String
   taxId      String
   categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  isDeleted  Boolean  @default(false)
+  category  Category @relation(fields: [categoryId], references: [id])
+  purchases Purchase[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
 }
 
 model Report {
