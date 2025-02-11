@@ -1,72 +1,43 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreateUserDto {
-  @ApiProperty({
-    description: 'User name',
-    example: 'joe',
-  })
-  @IsString({ message: 'El nombre debe ser una cadena' })
-  @IsNotEmpty({ message: 'El nombre no puede estar vacio' })
-  @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
-  @MaxLength(50, { message: 'El nombre no puede exceder los 50 caracteres' })
-  name: string;
+    @IsNotEmpty({ message: 'this field is required'})
+    @IsString({ message: 'this field must be a string'})
+    @MinLength(3, { message: 'this field must be at least 3 characters'})
+    @MaxLength(30, { message: 'this field must be at most 30 characters'})
+    name: string;
 
-  @ApiProperty({
-    description: 'User lastName',
-    example: 'doe',
-  })
-  @IsString({ message: 'El apellido debe ser una cadena' })
-  @IsNotEmpty({ message: 'El apellido no puede estar vacio' })
-  @MinLength(2, { message: 'El apellido debe tener al menos 2 caracteres' })
-  @MaxLength(50, { message: 'El apellido no puede exceder los 50 caracteres' })
-  lastName: string;
+    @IsNotEmpty({ message: 'this field is required'})
+    @IsString({ message: 'this field must be a string'})
+    @MinLength(3, { message: 'this field must be at least 3 characters'})
+    @MaxLength(30, { message: 'this field must be at most 30 characters'})
+    lastName: string;
 
-  @ApiProperty({
-    description: 'User email',
-    example: 'joe@gmail.com',
-  })
-  @IsNotEmpty({ message: 'El email no puede estar vacio' })
-  @IsEmail({}, { message: 'Debe ingresar un email válido' })
-  email: string;
+    @IsNotEmpty({ message: 'this field is required'})
+    @IsString({ message: 'this field must be a string'})
+    @MinLength(5, { message: 'this field must be at least 5 digits'})
+    @MaxLength(20, { message: 'this field must be at most 20 digits'})
+    phone: string;
 
-  @ApiProperty({
-    description: 'User address',
-    example: 'San juan 400',
-  })
-  @IsString({ message: 'La dirección debe ser una cadena' })
-  @IsNotEmpty({ message: 'El dirección no puede estar vacio' })
-  @MinLength(10, { message: 'La dirección debe tener al menos 10 caracteres' })
-  @MaxLength(100, {
-    message: 'La dirección no puede exceder los 100 caracteres',
-  })
-  address: string;
+    @IsNotEmpty({ message: 'this field is required'})
+    @IsEmail({},{ message: 'this field must be a valid email'})
+    email: string;
 
-  @ApiProperty({
-    description: 'User phone',
-    example: '3813123123',
-  })
-  @IsString({ message: 'El teléfono debe ser una cadena' })
-  @IsNotEmpty({ message: 'El teléfono no puede estar vacio' })
-  @MinLength(9, { message: 'El teléfono debe tener al menos 9 dígitos' })
-  @MaxLength(15, { message: 'El teléfono no puede exceder los 15 dígitos' })
-  phone: string;
+    @IsNotEmpty({ message: 'this field is required'})
+    @IsString({ message: 'this field must be a string'})
+    @MinLength(8, { message: 'this field must be at least 8 characters'})
+    @MaxLength(30, { message: 'this field must be at most 30 characters'})
+    password: string;
 
-  @ApiProperty({
-    description: 'User password',
-    example: 'Pass1234',
-  })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(8)
-  password: string;
+    @IsNotEmpty({ message: 'this field is required'})
+    @IsString({ message: 'this field must be a string'})
+    @MinLength(10, { message: 'this field must be at least 10 characters'})
+    @MaxLength(100, { message: 'this field must be at most 100 characters'})
+    address: string;
+
+    profileImg?: string;
 }
 
+
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
+
