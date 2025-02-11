@@ -3,8 +3,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { envValidationSchema } from 'src/config/env-validation.config';
-import { PrismaModule } from '../prisma/prisma.module';
 import { PurchaseModule } from '../purchase/purchase.module';
+import i18nModuleConfig from 'src/config/i18n.config';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
+
 
 @Module({
   imports: [
@@ -13,8 +17,11 @@ import { PurchaseModule } from '../purchase/purchase.module';
       envFilePath: ['.env'],
       validationSchema: envValidationSchema
     }),
+    PurchaseModule,
+    i18nModuleConfig(),
     PrismaModule,
-    PurchaseModule
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
