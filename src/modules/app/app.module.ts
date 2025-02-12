@@ -9,6 +9,7 @@ import i18nModuleConfig from 'src/config/i18n.config';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
+import { ProductsModule } from '../products/products.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UsersModule } from '../users/users.module';
     SuppliersModule,
     AuthModule,
     UsersModule,
+    ProductsModule
   ],
   controllers: [AppController],
   providers: [AppService],
