@@ -4,6 +4,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { AwsService } from '../aws/aws.service';
+import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
+import { Prisma } from '@prisma/client';
+import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
+import { paginate } from 'src/utils/pagination/parsing';
 
 @Injectable()
 export class UsersService {
@@ -34,9 +38,59 @@ export class UsersService {
     }
   }
 
-  async findAll() {
+  async findAll(pagination: PaginationArgs) {
     try {
-      return await this.prisma.user.findMany();
+      const {search, startDate, endDate, date} = pagination;
+      const dateObj = new Date(date);
+
+      const where: Prisma.UserWhereInput = {
+        isDeleted: false,
+        ...(search && {
+          OR: [
+            {
+              email: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              name: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              lastName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        ...(startDate && endDate && {
+          createdAt: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+        }),
+        ...(date && {
+          createdAt: {
+            gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
+            lte: new Date(dateObj.setUTCHours(23, 59, 59, 999)),
+          },
+        }),
+        })
+      }
+
+      const baseQuery = {
+        where,
+        ...getPaginationFilter(pagination),
+      }
+      const total = await this.prisma.user.count({ where });
+
+      const users = await this.prisma.user.findMany(baseQuery);
+
+      const res =paginate( users, total, pagination);
+      return res
     } catch (error) {
       return { error: error.message };
     }
