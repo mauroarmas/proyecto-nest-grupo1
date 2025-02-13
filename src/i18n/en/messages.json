@@ -1,3 +1,12 @@
 {
-    "welcome": "welcome {name}"
+    "welcome": "Welcome {name}",
+    "uploadUsers": "Users uploaded successfully",
+    "noUsersToCreate": "No users to create",
+    "profileImg": "Profile image uploaded successfully",
+    "userCreated": "User created successfully",
+    "userUpdated": "User updated successfully",
+    "userNotFound": "User not found",
+    "existingMail": "The mail is already in use",
+    "deletedUser": "User deleted successfully",
+    "profileUpdated": "Profile updated successfully"
 }

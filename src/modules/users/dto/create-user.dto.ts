@@ -1,44 +1,56 @@
-import { PartialType } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from "class-validator";
+import { PartialType } from '@nestjs/swagger';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class CreateUserDto {
-    @IsNotEmpty({ message: 'this field is required'})
-    @IsString({ message: 'this field must be a string'})
-    @MinLength(3, { message: 'this field must be at least 3 characters'})
-    @MaxLength(30, { message: 'this field must be at most 30 characters'})
-    name: string;
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
+  @IsString({ message: i18nValidationMessage('errors.isString')})
+  @MinLength(3, { message: i18nValidationMessage('errors.minLength', { value: 3 }) })
+  @MaxLength(30, { message: i18nValidationMessage('errors.maxLength', { value: 30 }) })
+  name: string;
 
-    @IsNotEmpty({ message: 'this field is required'})
-    @IsString({ message: 'this field must be a string'})
-    @MinLength(3, { message: 'this field must be at least 3 characters'})
-    @MaxLength(30, { message: 'this field must be at most 30 characters'})
-    lastName: string;
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
+  @IsString({ message: i18nValidationMessage('errors.isString') })
+  @MinLength(3, { message: i18nValidationMessage('errors.minLength', { value: 3 }) })
+  @MaxLength(30, { message: i18nValidationMessage('errors.maxLength', { value: 30 }) })
+  lastName: string;
 
-    @IsNotEmpty({ message: 'this field is required'})
-    @IsString({ message: 'this field must be a string'})
-    @MinLength(5, { message: 'this field must be at least 5 digits'})
-    @MaxLength(20, { message: 'this field must be at most 20 digits'})
-    phone: string;
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
+  @IsString({ message: i18nValidationMessage('errors.isString') })
+  @MinLength(5, { message: i18nValidationMessage('errors.minLengthPhone', { value: 5 }) })
+  @MaxLength(20, { message: i18nValidationMessage('errors.maxLengthPhone', { value: 20 }) })
+  phone: string;
 
-    @IsNotEmpty({ message: 'this field is required'})
-    @IsEmail({},{ message: 'this field must be a valid email'})
-    email: string;
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
+  @IsEmail({}, { message: i18nValidationMessage('errors.isEmail') })
+  email: string;
 
-    @IsNotEmpty({ message: 'this field is required'})
-    @IsString({ message: 'this field must be a string'})
-    @MinLength(8, { message: 'this field must be at least 8 characters'})
-    @MaxLength(30, { message: 'this field must be at most 30 characters'})
-    password: string;
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
+  @IsString({ message: i18nValidationMessage('errors.isString') })
+  @MinLength(8, { message: i18nValidationMessage('errors.minLength', { value: 8 }) })
+  @MaxLength(30, { message: i18nValidationMessage('errors.maxLength', { value: 30 }) })
+  password: string;
 
-    @IsNotEmpty({ message: 'this field is required'})
-    @IsString({ message: 'this field must be a string'})
-    @MinLength(10, { message: 'this field must be at least 10 characters'})
-    @MaxLength(100, { message: 'this field must be at most 100 characters'})
-    address: string;
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
+  @IsString({ message: i18nValidationMessage('errors.isString') })
+  @MinLength(10, { message: i18nValidationMessage('errors.minLength', { value: 10 }) })
+  @MaxLength(100, { message: i18nValidationMessage('errors.maxLength', { value: 100 }) })
+  address: string;
 
-    profileImg?: string;
+  @IsOptional()
+  profileImg?: string;
+
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('errors.isString') })
+  @MaxLength(255, { message: i18nValidationMessage('errors.maxLength', { value: 255 }) })
+  bio?: string;
 }
 
-
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
-

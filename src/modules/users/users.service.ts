@@ -8,12 +8,19 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { Prisma } from '@prisma/client';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
+import { ExcelService } from '../excel/excel.service';
+import { ExcelColumn } from 'src/common/interfaces';
+import { I18nService } from 'nestjs-i18n';
+import { translate } from 'src/utils/translation';
+
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly awsService: AwsService,
     private readonly prisma: PrismaService,
+    private readonly excelService: ExcelService,
+    private readonly i18n: I18nService,
   ) {}
   async create(newUser: CreateUserDto) {
     try {
@@ -21,18 +28,41 @@ export class UsersService {
         where: { email: newUser.email },
       });
       if (findEmail) {
-        throw new Error('This email is already in use');
+        throw new Error(translate(this.i18n, "message.existingMail"));
       }
       const user = await this.prisma.user.create({
         data: {
           ...newUser,
           password: await bcrypt.hash(
             newUser.password,
-            process.env.HASH_SALT_ROUND,
+            parseInt(process.env.HASH_SALT_ROUND),
           ),
+          profile: {
+            create: {
+              bio: newUser.bio || "",
+            },
+          }
         },
+        include: { profile: true },
       });
-      return { user, message: 'User created successfully' };
+      return { user, message: translate(this.i18n, 'messages.userCreated') };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
+  async updateProfile(id: string, updateProfileDto: UpdateUserDto) {
+    try {
+      const findUser = await this.prisma.user.findUnique({ where: { id } });
+      if (!findUser) {
+        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+      }
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: { profile: { update: updateProfileDto } },
+        include: { profile: true },
+      });
+      return { user, message: translate(this.i18n, 'messages.profileUpdated') };
     } catch (error) {
       return { error: error.message };
     }
@@ -99,6 +129,9 @@ export class UsersService {
   async findOne(id: string) {
     try {
       const user = await this.prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+      }
       return user;
     } catch (error) {
       return { error: error.message };
@@ -109,13 +142,13 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error('User not found');
+        throw new Error(translate(this.i18n, 'messages.userNotFound'));
       }
       const user = await this.prisma.user.update({
         where: { id },
         data: updateUserDto,
       });
-      return { user, message: 'User updated successfully' };
+      return { user, message: translate(this.i18n, 'messages.userUpdated') };
     } catch (error) {
       return { error: error.message };
     }
@@ -125,13 +158,13 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error('User not found');
+        throw new Error(translate(this.i18n, 'messages.userNotFound'));
       }
       const deletedUser = await this.prisma.user.update({
         where: { id },
         data: { isDeleted: true },
       });
-      return { deletedUser, message: 'User deleted successfully' };
+      return { deletedUser, message: translate(this.i18n, 'messages.userDeleted') };
     } catch (error) {
       return { error: error.message };
     }
@@ -144,7 +177,7 @@ export class UsersService {
   ) {
     const findUser = await this.prisma.user.findUnique({ where: { id } });
     if (!findUser) {
-      throw new Error('User not found');
+      throw new Error(translate(this.i18n, 'messages.userNotFound'));
     }
     const { url, key } = await this.awsService.uploadFile(file, id);
     const user = await this.prisma.user
@@ -165,7 +198,76 @@ export class UsersService {
       });
     return {
       user,
-      Message: 'File uploaded successfully',
+      Message: translate(this.i18n, 'messages.profileImg')
     };
   }
+
+  async exportAllExcel(res: Response, userId: string) {
+    const users = await this.prisma.user.findMany({ where: {isDeleted: false}, include: {profile: true}});
+
+    const columns: ExcelColumn[] = [
+      { header: 'name', key: 'name' },
+      { header: 'lastName', key: 'lastName' },
+      { header: 'email', key: 'email' },
+      { header: 'phone', key: 'phone' },
+      { header: 'address', key: 'address' },
+      { header: 'profileImg', key: 'profileImg' },
+      { header: 'password', key: 'password' },
+    ];
+
+    const workbook = await this.excelService.generateExcel(
+      users,
+      columns,
+      'Usuarios',
+    );
+
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
+
+    const file: Express.Multer.File = {
+      fieldname: 'excel-usuarios',
+      originalname: 'usuarios.xlsx',
+      encoding: '7bit',
+      mimetype:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      size: buffer.length,
+      buffer,
+      destination: '',
+      filename: '',
+      path: '',
+      stream: null,
+    };
+
+    const { url } = await this.awsService.uploadFile(file, 'excel');
+    const reportUrl = url;
+
+    await this.prisma.report.create({
+      data: { reportUrl },
+    });
+   await this.excelService.exportToResponse(res, workbook, 'usuarios.xlsx');
+}
+
+async uploadUsers(buffer: Buffer) {
+  const users = await this.excelService.readExcel(buffer);
+  
+  const emails= users.map((user) => user.email);
+  
+  const existingEmails = await this.prisma.user.findMany({
+    where: { email: { in: emails } },
+    select: { email: true },
+  });
+  
+  const usersToCreate = users.filter((user) => !existingEmails.some(({ email }) => email === user.email));
+  
+  if (usersToCreate.length > 0) {
+    await this.prisma.user.createMany({ data: usersToCreate });
+  } else {
+    return {
+      messsage: translate(this.i18n, 'messages.noUsersToCreate')
+    }
+  }
+  return {
+    users,
+    message: translate(this.i18n, 'messages.uploadUsers')
+  };
+}
 }

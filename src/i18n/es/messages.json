@@ -1,3 +1,13 @@
 {
-    "welcome": "Bienvenido {name}"
+    "welcome": "Bienvenido {name}",
+    "uploadUsers": "Usuarios subidos con éxito",
+    "noUsersToCreate": "No hay usuarios para crear",
+    "profileImg": "Imagen de perfil subida con éxito",
+    "userCreated": "Usuario creado con éxito",
+    "userUpdated": "Usuario actualizado con éxito",
+    "userNotFound": "Usuario no encontrado",
+    "existingMail": "El correo ya está en uso",
+    "deletedUser": "Usuario eliminado con éxito",
+    "profileUpdated": "Perfil actualizado con éxito"
+    
 }
