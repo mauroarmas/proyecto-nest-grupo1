@@ -8,12 +8,16 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { Prisma } from '@prisma/client';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
+import { ExcelService } from '../excel/excel.service';
+import { ExcelColumn } from 'src/common/interfaces';
+import { profile } from 'node:console';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly awsService: AwsService,
     private readonly prisma: PrismaService,
+    private readonly excelService: ExcelService,
   ) {}
   async create(newUser: CreateUserDto) {
     try {
@@ -99,6 +103,9 @@ export class UsersService {
   async findOne(id: string) {
     try {
       const user = await this.prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        throw new Error('User not found');
+      }
       return user;
     } catch (error) {
       return { error: error.message };
@@ -168,4 +175,79 @@ export class UsersService {
       Message: 'File uploaded successfully',
     };
   }
+
+  async exportAllExcel(res: Response, userId: string) {
+    const users = await this.prisma.user.findMany({ where: {isDeleted: false}, include: {profile: true}});
+
+    const columns: ExcelColumn[] = [
+      { header: 'name', key: 'name' },
+      { header: 'lastName', key: 'lastName' },
+      { header: 'email', key: 'email' },
+      { header: 'phone', key: 'phone' },
+      { header: 'address', key: 'address' },
+      { header: 'profileImg', key: 'profileImg' },
+      { header: 'password', key: 'password' },
+    ];
+
+    const workbook = await this.excelService.generateExcel(
+      users,
+      columns,
+      'Usuarios',
+    );
+
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
+
+    const file: Express.Multer.File = {
+      fieldname: 'excel-usuarios',
+      originalname: 'usuarios.xlsx',
+      encoding: '7bit',
+      mimetype:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      size: buffer.length,
+      buffer,
+      destination: '',
+      filename: '',
+      path: '',
+      stream: null,
+    };
+
+    const { url } = await this.awsService.uploadFile(file, 'excel');
+    const reportUrl = url;
+
+    await this.prisma.report.create({
+      data: { reportUrl },
+    });
+   await this.excelService.exportToResponse(res, workbook, 'usuarios.xlsx');
+}
+
+async uploadUsers(buffer: Buffer) {
+  const users = await this.excelService.readExcel(buffer);
+  
+  const emails= users.map((user) => user.email);
+  
+  const existingEmails = await this.prisma.user.findMany({
+    where: { email: { in: emails } },
+    select: { email: true },
+  });
+  
+  const usersToCreate = users.filter((user) => !existingEmails.some(({ email }) => email === user.email));
+ 
+  // Renombrar la propiedad lastname a lastName
+  const formatPropertyName = usersToCreate.map(({lastname, ...user}) => ({
+    ...user,
+    lastName: lastname, // Renombramos lastname a lastName
+  }));
+
+  if (formatPropertyName.length > 0) {
+    await this.prisma.user.createMany({ data: formatPropertyName });
+  } else {
+    return {
+      Message: 'No users to create',
+    };
+  }
+  return {
+    users,
+    Message: 'Usuarios subidos correctamente',
+  };
+}
 }
