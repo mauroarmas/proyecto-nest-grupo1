@@ -108,11 +108,10 @@ model Product {
   name          String
   price         Float
   stock         Int
-  categoryId    String
-  category      Category       @relation(fields: [categoryId], references: [id])
   images        ProductImage[]
   cartLines     CartLine[]
   purchaseLines PurchaseLine[]
+  categories    CategoryProduct[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   isDeleted     Boolean        @default(false)
@@ -131,7 +130,7 @@ model ProductImage {
 model Category {
   id        String     @id @default(uuid())
   name      String
-  products  Product[]
+  products  CategoryProduct[]
   suppliers Supplier[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -158,4 +157,17 @@ model Report {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
+}
+
+model CategoryProduct {
+  id         String   @id @default(uuid())
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDeleted  Boolean  @default(false)
+
+  @@unique([productId, categoryId])
 }
