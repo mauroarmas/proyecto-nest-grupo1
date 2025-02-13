@@ -35,11 +35,34 @@ export class UsersService {
           ...newUser,
           password: await bcrypt.hash(
             newUser.password,
-            process.env.HASH_SALT_ROUND,
+            parseInt(process.env.HASH_SALT_ROUND),
           ),
+          profile: {
+            create: {
+              bio: newUser.bio || "",
+            },
+          }
         },
+        include: { profile: true },
       });
       return { user, message: translate(this.i18n, 'messages.userCreated') };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
+  async updateProfile(id: string, updateProfileDto: UpdateUserDto) {
+    try {
+      const findUser = await this.prisma.user.findUnique({ where: { id } });
+      if (!findUser) {
+        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+      }
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: { profile: { update: updateProfileDto } },
+        include: { profile: true },
+      });
+      return { user, message: translate(this.i18n, 'messages.profileUpdated') };
     } catch (error) {
       return { error: error.message };
     }

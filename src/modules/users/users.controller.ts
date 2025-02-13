@@ -22,6 +22,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/common/constants';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
@@ -75,5 +76,10 @@ export class UsersController {
   async uploadUsers(@UploadedFile() file: Express.Multer.File) {
     const data = await this.usersService.uploadUsers(file.buffer);
     return data;
+  }
+
+  @Patch('profile/:id')
+  updateProfile(@Param('id') id: string, @Body() updateProfile: UpdateProfileDto) {
+    return this.usersService.updateProfile(id, updateProfile);
   }
 }

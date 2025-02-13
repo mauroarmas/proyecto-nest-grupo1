@@ -7,5 +7,6 @@
     "userUpdated": "User updated successfully",
     "userNotFound": "User not found",
     "existingMail": "The mail is already in use",
-    "deletedUser": "User deleted successfully"
+    "deletedUser": "User deleted successfully",
+    "profileUpdated": "Profile updated successfully"
 }
