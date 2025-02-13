@@ -1,6 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { PrismaService } from '../prisma/prisma.service';
+
+interface Product {
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    categories?: {
+        category: {
+            id: string;
+        }
+    }[];
+}
 
 @Injectable()
 export class PurchaseService {
@@ -16,20 +28,32 @@ export class PurchaseService {
 
       const supplier = await this.prisma.supplier.findUnique({
         where: { id: supplierId, isDeleted: false },
-      })
+      });
 
-      //Verificacion de existencia y stock de productos
       for (const line of purchaseLines) {
         const product = await this.prisma.product.findUnique({
           where: { id: line.productId, isDeleted: false },
+          include: {
+            categories: {
+              include: {
+                category: true
+              }
+            }
+          }
         });
+
         if (!product || product.isDeleted) {
           throw new Error(
             `Producto con ID ${line.productId} no encontrado o eliminado`,
           );
         }
 
-        if(product.categoryId !== supplier.categoryId){
+        // Verificar si el producto tiene la categoría del proveedor
+        const hasSupplierCategory = product.categories.some(
+          categoryProduct => categoryProduct.category.id === supplier.categoryId
+        );
+
+        if (!hasSupplierCategory) {
           throw new Error(
             `Producto con ID ${line.productId} no pertenece a la categoria del proveedor`,
           );
