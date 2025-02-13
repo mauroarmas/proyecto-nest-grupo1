@@ -232,14 +232,9 @@ async uploadUsers(buffer: Buffer) {
   
   const usersToCreate = users.filter((user) => !existingEmails.some(({ email }) => email === user.email));
  
-  // Renombrar la propiedad lastname a lastName
-  const formatPropertyName = usersToCreate.map(({lastname, ...user}) => ({
-    ...user,
-    lastName: lastname, // Renombramos lastname a lastName
-  }));
 
-  if (formatPropertyName.length > 0) {
-    await this.prisma.user.createMany({ data: formatPropertyName });
+  if (usersToCreate.length > 0) {
+    await this.prisma.user.createMany({ data: usersToCreate });
   } else {
     return {
       Message: 'No users to create',
