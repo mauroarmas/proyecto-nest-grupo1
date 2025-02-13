@@ -1,5 +1,8 @@
 {
     "isNotEmpty": "{property}: El campo es requerido",
-    "IsString": "{property} Debe ser una cadena de texto",
-    "isEmail": "El campo debe ser un email válido"
+    "isString": "{property} debe ser una cadena de texto",
+    "isEmail": "El campo debe ser un email válido",
+    "minLength": "El campo debe tener al menos {value} caracteres",
+    "maxLength": "El campo no debe superar los {value} caracteres",
+    "minLengthPhone": "El número de teléfono debe tener al menos {value} dígitos"
 }

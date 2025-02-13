@@ -10,7 +10,9 @@ import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
 import { ExcelService } from '../excel/excel.service';
 import { ExcelColumn } from 'src/common/interfaces';
-import { profile } from 'node:console';
+import { I18nService } from 'nestjs-i18n';
+import { translate } from 'src/utils/translation';
+
 
 @Injectable()
 export class UsersService {
@@ -18,6 +20,7 @@ export class UsersService {
     private readonly awsService: AwsService,
     private readonly prisma: PrismaService,
     private readonly excelService: ExcelService,
+    private readonly i18n: I18nService,
   ) {}
   async create(newUser: CreateUserDto) {
     try {
@@ -25,7 +28,7 @@ export class UsersService {
         where: { email: newUser.email },
       });
       if (findEmail) {
-        throw new Error('This email is already in use');
+        throw new Error(translate(this.i18n, "message.existingMail"));
       }
       const user = await this.prisma.user.create({
         data: {
@@ -36,7 +39,7 @@ export class UsersService {
           ),
         },
       });
-      return { user, message: 'User created successfully' };
+      return { user, message: translate(this.i18n, 'messages.userCreated') };
     } catch (error) {
       return { error: error.message };
     }
@@ -104,7 +107,7 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUnique({ where: { id } });
       if (!user) {
-        throw new Error('User not found');
+        throw new Error(translate(this.i18n, 'messages.userNotFound'));
       }
       return user;
     } catch (error) {
@@ -116,13 +119,13 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error('User not found');
+        throw new Error(translate(this.i18n, 'messages.userNotFound'));
       }
       const user = await this.prisma.user.update({
         where: { id },
         data: updateUserDto,
       });
-      return { user, message: 'User updated successfully' };
+      return { user, message: translate(this.i18n, 'messages.userUpdated') };
     } catch (error) {
       return { error: error.message };
     }
@@ -132,13 +135,13 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error('User not found');
+        throw new Error(translate(this.i18n, 'messages.userNotFound'));
       }
       const deletedUser = await this.prisma.user.update({
         where: { id },
         data: { isDeleted: true },
       });
-      return { deletedUser, message: 'User deleted successfully' };
+      return { deletedUser, message: translate(this.i18n, 'messages.userDeleted') };
     } catch (error) {
       return { error: error.message };
     }
@@ -151,7 +154,7 @@ export class UsersService {
   ) {
     const findUser = await this.prisma.user.findUnique({ where: { id } });
     if (!findUser) {
-      throw new Error('User not found');
+      throw new Error(translate(this.i18n, 'messages.userNotFound'));
     }
     const { url, key } = await this.awsService.uploadFile(file, id);
     const user = await this.prisma.user
@@ -172,7 +175,7 @@ export class UsersService {
       });
     return {
       user,
-      Message: 'File uploaded successfully',
+      Message: translate(this.i18n, 'messages.profileImg')
     };
   }
 
@@ -231,18 +234,17 @@ async uploadUsers(buffer: Buffer) {
   });
   
   const usersToCreate = users.filter((user) => !existingEmails.some(({ email }) => email === user.email));
- 
-
+  
   if (usersToCreate.length > 0) {
     await this.prisma.user.createMany({ data: usersToCreate });
   } else {
     return {
-      Message: 'No users to create',
-    };
+      messsage: translate(this.i18n, 'messages.noUsersToCreate')
+    }
   }
   return {
     users,
-    Message: 'Usuarios subidos correctamente',
+    message: translate(this.i18n, 'messages.uploadUsers')
   };
 }
 }
