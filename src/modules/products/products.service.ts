@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -8,61 +8,80 @@ export class ProductsService {
   constructor(private readonly prisma: PrismaService) { }
 
   async create(newProduct: CreateProductDto) {
-    try {
-      const product = await this.prisma.product.create({
-        data: newProduct,
+    const existingProduct = await this.prisma.product.findFirst({
+      where: { name: newProduct.name },
+    });
+
+    if (existingProduct) {
+      return this.prisma.product.update({
+        where: { id: existingProduct.id },
+        data: { stock: { increment: newProduct.stock } },
       });
-      return product;
-    } catch (error) {
-      throw new Error(`Error al crear el producto: ${error.message}`);
     }
+
+    const categoryExists = await this.prisma.category.findUnique({
+      where: { id: newProduct.categoryId },
+    });
+
+    if (!categoryExists) {
+      throw new NotFoundException('Categoría no encontrada');
+    }
+
+    return this.prisma.product.create({
+      data: {
+        name: newProduct.name,
+        price: newProduct.price,
+        stock: newProduct.stock,
+        categories: {
+          create: { category: { connect: { id: newProduct.categoryId } } },
+        },
+      },
+    });
   }
 
   async findAll() {
-    try {
-      const products = await this.prisma.product.findMany();
-      return products;
-    } catch (error) {
-      throw new Error('Error al obtener los productos');
-    }
+    return this.prisma.product.findMany({
+      include: { categories: true, images: true },
+    });
   }
 
   async findOne(id: string) {
-    try {
-      const product = await this.prisma.product.findUnique({
-        where: { id },
-        include: { category: true, images: true },
-      });
-      return product;
-    } catch (error) {
-      throw new Error('Error al obtener el producto');
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: { categories: true, images: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado');
     }
+
+    return product;
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    try {
-      const updatedProduct = await this.prisma.product.update({
-        where: { id },
-        data: {
-          name: updateProductDto.name,
-          price: updateProductDto.price,
-          stock: updateProductDto.stock, // revisar categoria 
-        },
-      });
-      return updatedProduct;
-    } catch (error) {
-      throw new Error('Error al actualizar el producto');
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado');
     }
+
+    return this.prisma.product.update({
+      where: { id },
+      data: updateProductDto,
+    });
   }
 
   async remove(id: string) {
-    try {
-      const deletedProduct = await this.prisma.product.delete({
-        where: { id },
-      });
-      return deletedProduct;
-    } catch (error) {
-      throw new Error('Error al eliminar el producto');
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado');
     }
+
+    return this.prisma.product.delete({ where: { id } });
   }
 }
