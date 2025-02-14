@@ -8,52 +8,122 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) { }
 
   async create(createCategoryDto: CreateCategoryDto) {
-    return await this.prisma.category.create({
-      data: createCategoryDto,
+    const { productIds, name } = createCategoryDto;
+
+    const products = await this.prisma.product.findMany({
+      where: {
+        id: {
+          in: productIds,
+        },
+      },
     });
+
+    if (productIds.length > 0 && products.length !== productIds.length) {
+      throw new NotFoundException('Uno o más productos no existen');
+    }
+
+    const category = await this.prisma.category.create({
+      data: {
+        name,
+        products: {
+          create: productIds.map((productId) => ({
+            productId,
+          })),
+        },
+      },
+    });
+
+    return category;
   }
 
   async findAll() {
-    return await this.prisma.category.findMany({
-      where: { isDeleted: false },
-      include: { products: true, suppliers: true },
+    return this.prisma.category.findMany({
+      include: {
+        products: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
   }
 
   async findOne(id: string) {
     const category = await this.prisma.category.findUnique({
       where: { id },
-      include: { products: true, suppliers: true },
+      include: {
+        products: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
 
     if (!category) {
-      throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+      throw new NotFoundException('Categoría no encontrada');
     }
 
     return category;
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    const category = await this.prisma.category.findUnique({ where: { id } });
+    const { productIds, name } = updateCategoryDto;
+
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+
     if (!category) {
-      throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+      throw new NotFoundException('Categoría no encontrada');
     }
 
-    return await this.prisma.category.update({
-      where: { id },
-      data: updateCategoryDto,
-    });
+    if (productIds && productIds.length > 0) {
+      const products = await this.prisma.product.findMany({
+        where: {
+          id: {
+            in: productIds,
+          },
+        },
+      });
+
+      if (products.length !== productIds.length) {
+        throw new NotFoundException('Uno o más productos no existen');
+      }
+
+      await this.prisma.categoryProduct.deleteMany({
+        where: { categoryId: id },
+      });
+
+      await this.prisma.categoryProduct.createMany({
+        data: productIds.map((productId) => ({
+          categoryId: id,
+          productId,
+        })),
+      });
+    }
+
+    if (name) {
+      await this.prisma.category.update({
+        where: { id },
+        data: { name },
+      });
+    }
+
+    return this.findOne(id);
   }
 
   async remove(id: string) {
-    const category = await this.prisma.category.findUnique({ where: { id } });
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+
     if (!category) {
-      throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+      throw new NotFoundException('Categoría no encontrada');
     }
 
-    return await this.prisma.category.update({
+    return this.prisma.category.delete({
       where: { id },
-      data: { isDeleted: true },
     });
   }
 }

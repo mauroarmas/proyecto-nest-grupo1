@@ -8,32 +8,41 @@ export class ProductsService {
   constructor(private readonly prisma: PrismaService) { }
 
   async create(newProduct: CreateProductDto) {
+    const { name, price, stock, categoryIds } = newProduct;
+
     const existingProduct = await this.prisma.product.findFirst({
-      where: { name: newProduct.name },
+      where: { name },
     });
 
     if (existingProduct) {
+      // Si el producto existe, se actualiza el stock
       return this.prisma.product.update({
         where: { id: existingProduct.id },
-        data: { stock: { increment: newProduct.stock } },
+        data: { stock: { increment: stock } },
       });
     }
 
-    const categoryExists = await this.prisma.category.findUnique({
-      where: { id: newProduct.categoryId },
+    const categories = await this.prisma.category.findMany({
+      where: {
+        id: {
+          in: categoryIds,
+        },
+      },
     });
 
-    if (!categoryExists) {
-      throw new NotFoundException('Categoría no encontrada');
+    if (categories.length !== categoryIds.length) {
+      throw new NotFoundException('Una o más categorías no existen');
     }
 
     return this.prisma.product.create({
       data: {
-        name: newProduct.name,
-        price: newProduct.price,
-        stock: newProduct.stock,
+        name,
+        price,
+        stock,
         categories: {
-          create: { category: { connect: { id: newProduct.categoryId } } },
+          create: categoryIds.map((categoryId) => ({
+            categoryId,
+          })),
         },
       },
     });

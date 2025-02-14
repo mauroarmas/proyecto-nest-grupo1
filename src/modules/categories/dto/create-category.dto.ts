@@ -1,10 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, Length } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateCategoryDto {
-    @ApiProperty({ description: 'Nombre de la categoría', example: 'Indumentaria femenina' })
+    @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    @Length(3, 50)
+    @MaxLength(255)
     name: string;
+
+    @ApiProperty()
+    @IsArray()
+    @IsUUID("4", { each: true })
+    productIds: string[];
 }
