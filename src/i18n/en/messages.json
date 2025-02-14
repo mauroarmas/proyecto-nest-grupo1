@@ -16,4 +16,12 @@
     "passwordUpdated": "Password updated successfully",
     "recoveryEmailSent": "A recovery email has been sent",
     "invalidOrExpiredToken": "The recovery link is invalid or has expired"
+    "product": {
+        "notFound": "Product not found",
+        "categoryNotFound": "One or more categories do not exist"
+    },
+    "category": {
+        "notFound": "Category not found",
+        "productNotFound": "One or more products do not exist"
+    }
 }
