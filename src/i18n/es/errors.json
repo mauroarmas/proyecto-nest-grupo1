@@ -5,5 +5,10 @@
     "minLength": "El campo debe tener al menos {value} caracteres",
     "maxLength": "El campo no debe superar los {value} caracteres",
     "minLengthPhone": "El número de teléfono debe tener al menos {value} dígitos",
-    "maxLengthPhone": "El número de teléfono no debe superar los {value} dígitos"
+    "maxLengthPhone": "El número de teléfono no debe superar los {value} dígitos",
+    "isPositive": "{property} debe ser un número positivo",
+    "minValue": "{property} no puede ser menor a {value}",
+    "maxValue": "{property} no puede ser mayor a {value}",
+    "isUUID": "{property} debe ser un UUID válido",
+    "isNumber": "{property} debe ser un número válido"
 }

@@ -2,10 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor
+    (private readonly prisma: PrismaService,
+      private readonly i18n: I18nService,
+    ) { }
 
   async create(createCategoryDto: CreateCategoryDto) {
     const { productIds, name } = createCategoryDto;
