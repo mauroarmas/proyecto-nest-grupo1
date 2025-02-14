@@ -1,22 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
-interface Product {
-    id: string;
-    name: string;
-    price: number;
-    stock: number;
-    categories?: {
-        category: {
-            id: string;
-        }
-    }[];
-}
-
 @Injectable()
 export class PurchaseService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(createPurchaseDto: CreatePurchaseDto) {
     try {
@@ -28,36 +16,24 @@ export class PurchaseService {
 
       const supplier = await this.prisma.supplier.findUnique({
         where: { id: supplierId, isDeleted: false },
-      });
+      })
 
+      //Verificacion de existencia y stock de productos
       for (const line of purchaseLines) {
         const product = await this.prisma.product.findUnique({
           where: { id: line.productId, isDeleted: false },
-          include: {
-            categories: {
-              include: {
-                category: true
-              }
-            }
-          }
         });
-
         if (!product || product.isDeleted) {
           throw new Error(
             `Producto con ID ${line.productId} no encontrado o eliminado`,
           );
         }
 
-        // Verificar si el producto tiene la categoría del proveedor
-        const hasSupplierCategory = product.categories.some(
-          categoryProduct => categoryProduct.category.id === supplier.categoryId
-        );
-
-        if (!hasSupplierCategory) {
-          throw new Error(
-            `Producto con ID ${line.productId} no pertenece a la categoria del proveedor`,
-          );
-        }
+        // if(product.categoryId !== supplier.categoryId){
+        //   throw new Error(
+        //     `Producto con ID ${line.productId} no pertenece a la categoria del proveedor`,
+        //   );
+        // }
 
         total += product.price * line.quantity;
         productsPrices.push(product.price);
@@ -86,7 +62,7 @@ export class PurchaseService {
       for (const line of purchaseLines) {
         await this.prisma.product.update({
           where: { id: line.productId },
-          data: { stock: { increment: line.quantity} },
+          data: { stock: { increment: line.quantity } },
         });
       }
 
@@ -102,7 +78,7 @@ export class PurchaseService {
 
   findOne(id: string) {
     return this.prisma.purchase.findUnique({
-      where: { id }, include: { purchaseLines: { include: { product: true } } } 
+      where: { id }, include: { purchaseLines: { include: { product: true } } }
     });
   }
 

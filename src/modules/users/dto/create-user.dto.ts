@@ -11,7 +11,7 @@ import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
-  @IsString({ message: i18nValidationMessage('errors.isString')})
+  @IsString({ message: i18nValidationMessage('errors.isString') })
   @MinLength(3, { message: i18nValidationMessage('errors.minLength', { value: 3 }) })
   @MaxLength(30, { message: i18nValidationMessage('errors.maxLength', { value: 30 }) })
   name: string;
@@ -53,4 +53,4 @@ export class CreateUserDto {
   bio?: string;
 }
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export class UpdateUserDto extends PartialType(CreateUserDto) { }

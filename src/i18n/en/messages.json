@@ -8,5 +8,13 @@
     "userNotFound": "User not found",
     "existingMail": "The mail is already in use",
     "deletedUser": "User deleted successfully",
-    "profileUpdated": "Profile updated successfully"
+    "profileUpdated": "Profile updated successfully",
+    "product": {
+        "notFound": "Product not found",
+        "categoryNotFound": "One or more categories do not exist"
+    },
+    "category": {
+        "notFound": "Category not found",
+        "productNotFound": "One or more products do not exist"
+    }
 }
