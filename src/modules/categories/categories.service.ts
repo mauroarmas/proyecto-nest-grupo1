@@ -6,10 +6,10 @@ import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class CategoriesService {
-  constructor
-    (private readonly prisma: PrismaService,
-      private readonly i18n: I18nService,
-    ) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly i18n: I18nService,
+  ) { }
 
   async create(createCategoryDto: CreateCategoryDto) {
     const { productIds, name } = createCategoryDto;
@@ -23,7 +23,9 @@ export class CategoriesService {
     });
 
     if (productIds.length > 0 && products.length !== productIds.length) {
-      throw new NotFoundException('Uno o más productos no existen');
+      throw new NotFoundException(
+        await this.i18n.translate('category.productNotFound'),
+      );
     }
 
     const category = await this.prisma.category.create({
@@ -65,7 +67,9 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException('Categoría no encontrada');
+      throw new NotFoundException(
+        await this.i18n.translate('category.notFound'),
+      );
     }
 
     return category;
@@ -79,7 +83,9 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException('Categoría no encontrada');
+      throw new NotFoundException(
+        await this.i18n.translate('category.notFound'),
+      );
     }
 
     if (productIds && productIds.length > 0) {
@@ -92,7 +98,9 @@ export class CategoriesService {
       });
 
       if (products.length !== productIds.length) {
-        throw new NotFoundException('Uno o más productos no existen');
+        throw new NotFoundException(
+          await this.i18n.translate('category.productNotFound'),
+        );
       }
 
       await this.prisma.categoryProduct.deleteMany({
@@ -123,7 +131,9 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException('Categoría no encontrada');
+      throw new NotFoundException(
+        await this.i18n.translate('category.notFound'),
+      );
     }
 
     return this.prisma.category.delete({

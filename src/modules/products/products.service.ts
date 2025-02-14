@@ -3,14 +3,13 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from 'nestjs-i18n';
-import { translate } from 'src/utils/translation';
 
 @Injectable()
 export class ProductsService {
-  constructor
-    (private readonly prisma: PrismaService,
-      private readonly i18n: I18nService,
-    ) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly i18n: I18nService,
+  ) { }
 
   async create(newProduct: CreateProductDto) {
     const { name, price, stock, categoryIds } = newProduct;
@@ -36,7 +35,9 @@ export class ProductsService {
     });
 
     if (categories.length !== categoryIds.length) {
-      throw new NotFoundException('Una o más categorías no existen');
+      throw new NotFoundException(
+        await this.i18n.translate('product.categoryNotFound'),
+      );
     }
 
     return this.prisma.product.create({
@@ -66,7 +67,9 @@ export class ProductsService {
     });
 
     if (!product) {
-      throw new NotFoundException('Producto no encontrado');
+      throw new NotFoundException(
+        await this.i18n.translate('product.notFound'),
+      );
     }
 
     return product;
@@ -78,7 +81,9 @@ export class ProductsService {
     });
 
     if (!product) {
-      throw new NotFoundException('Producto no encontrado');
+      throw new NotFoundException(
+        await this.i18n.translate('product.notFound'),
+      );
     }
 
     return this.prisma.product.update({
@@ -93,7 +98,9 @@ export class ProductsService {
     });
 
     if (!product) {
-      throw new NotFoundException('Producto no encontrado');
+      throw new NotFoundException(
+        await this.i18n.translate('product.notFound'),
+      );
     }
 
     return this.prisma.product.delete({ where: { id } });
