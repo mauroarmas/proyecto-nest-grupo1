@@ -15,7 +15,7 @@
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "passwordUpdated": "Contraseña actualizada correctamente",
     "recoveryEmailSent": "Se ha enviado un correo de recuperación",
-    "invalidOrExpiredToken": "El enlace de recuperación es inválido o ha expirado"
+    "invalidOrExpiredToken": "El enlace de recuperación es inválido o ha expirado",
     "product": {
         "notFound": "Producto no encontrado",
         "categoryNotFound": "Una o más categorías no existen"
