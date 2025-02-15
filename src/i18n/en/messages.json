@@ -7,7 +7,21 @@
     "userUpdated": "User updated successfully",
     "userNotFound": "User not found",
     "existingMail": "The mail is already in use",
-    "userDeleted": "User deleted successfully",
+    "deletedUser": "User deleted successfully",
     "profileUpdated": "Profile updated successfully",
-    "isDeleted": "User not found"
+    "invalidCredentials": "Invalid credentials",
+    "serverError": "Server error: {error}",
+    "userDeleted": "This account has been deactivated",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordUpdated": "Password updated successfully",
+    "recoveryEmailSent": "A recovery email has been sent",
+    "invalidOrExpiredToken": "The recovery link is invalid or has expired",
+    "product": {
+        "notFound": "Product not found",
+        "categoryNotFound": "One or more categories do not exist"
+    },
+    "category": {
+        "notFound": "Category not found",
+        "productNotFound": "One or more products do not exist"
+    }
 }

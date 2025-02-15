@@ -166,7 +166,7 @@ export class UsersService {
       });
       return {
         deletedUser,
-        message: translate(this.i18n, 'messages.userDeleted'),
+        message: translate(this.i18n, 'messages.deletedUser'),
       };
     } catch (error) {
       return { error: error.message };
