@@ -266,7 +266,14 @@ export class UsersService {
     await this.excelService.exportToResponse(res, workbook, 'usuarios.xlsx');
   }
 
-  async uploadUsers(buffer: Buffer) {
+  async uploadUsers(buffer: Buffer, fileName: string) {
+    const validExtensions = ['xlsx', 'xls', 'csv'];
+
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      throw new Error(translate(this.i18n, 'messages.invalidFileExtension'));
+    }
+
     const users = await this.excelService.readExcel(buffer);
 
     const requiredFields = [

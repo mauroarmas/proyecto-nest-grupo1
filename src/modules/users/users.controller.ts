@@ -89,7 +89,7 @@ export class UsersController {
   @Post('upload/excel')
   @UseInterceptors(FileInterceptor('file'))
   async uploadUsers(@UploadedFile() file: Express.Multer.File) {
-    const data = await this.usersService.uploadUsers(file.buffer);
+    const data = await this.usersService.uploadUsers(file.buffer, file.originalname);
     return data;
   }
 
