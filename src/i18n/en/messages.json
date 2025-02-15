@@ -6,8 +6,7 @@
     "userCreated": "User created successfully",
     "userUpdated": "User updated successfully",
     "userNotFound": "User not found",
-    "existingMail": "The mail is already in use",
-    "existingTaxId": "The taxId is already in use",
+
     "deletedUser": "User deleted successfully",
     "profileUpdated": "Profile updated successfully",
     "invalidCredentials": "Invalid credentials",
@@ -23,6 +22,14 @@
     },
     "category": {
         "notFound": "Category not found",
-        "productNotFound": "One or more products do not exist"
+        "productNotFound": "One or more products do not exist",
+        "duplicated": "The same category was selected one or more times"
+    },
+    "supplier": {
+        "created" : "Supplier registered successfully",
+        "existingMail": "The mail is already in use",
+        "existingTaxId": "The taxId is already in use",
+        "notFound": "Supplier not found",
+        "updated": "Supplier updated successfully"
     }
 }
