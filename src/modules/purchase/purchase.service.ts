@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PurchaseService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(createPurchaseDto: CreatePurchaseDto) {
     try {
@@ -56,7 +56,7 @@ export class PurchaseService {
       for (const line of purchaseLines) {
         await this.prisma.product.update({
           where: { id: line.productId },
-          data: { stock: { increment: line.quantity} },
+          data: { stock: { increment: line.quantity } },
         });
       }
 
@@ -72,7 +72,7 @@ export class PurchaseService {
 
   findOne(id: string) {
     return this.prisma.purchase.findUnique({
-      where: { id }, include: { purchaseLines: { include: { product: true } } } 
+      where: { id }, include: { purchaseLines: { include: { product: true } } }
     });
   }
 

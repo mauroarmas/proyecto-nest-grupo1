@@ -10,6 +10,19 @@
     "existingTaxId": "The taxId is already in use",
     "deletedUser": "User deleted successfully",
     "profileUpdated": "Profile updated successfully",
-    "categoryNotFound": "Category not found",
-    "categoryDuplicated": "The category is duplicated"
+    "invalidCredentials": "Invalid credentials",
+    "serverError": "Server error: {error}",
+    "userDeleted": "This account has been deactivated",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordUpdated": "Password updated successfully",
+    "recoveryEmailSent": "A recovery email has been sent",
+    "invalidOrExpiredToken": "The recovery link is invalid or has expired",
+    "product": {
+        "notFound": "Product not found",
+        "categoryNotFound": "One or more categories do not exist"
+    },
+    "category": {
+        "notFound": "Category not found",
+        "productNotFound": "One or more products do not exist"
+    }
 }
