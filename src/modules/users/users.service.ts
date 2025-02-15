@@ -181,6 +181,18 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     file: Express.Multer.File,
   ) {
+    const validExtensions = ['jpg', 'webp', 'png', 'gif', 'tiff', 'bmp', 'svg'];
+    const maxFileSize = 1.5 * 1024 * 1024; // 1.5 MB
+
+    const fileExtension = file.originalname.split('.').pop().toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      throw new Error(translate(this.i18n, 'messages.invalidFileExtension'));
+    }
+
+    if (file.size > maxFileSize) {
+      throw new Error(translate(this.i18n, 'messages.fileTooLarge'));
+    }
+
     const findUser = await this.prisma.user.findUnique({ where: { id } });
     if (!findUser) {
       throw new Error(translate(this.i18n, 'messages.userNotFound'));
@@ -288,10 +300,19 @@ export class UsersService {
     );
 
     if (usersToCreate.length > 0) {
-      await this.prisma.user.createMany({ data: usersToCreate });
+      try {
+        await this.prisma.$transaction(async (prisma) => {
+          await prisma.user.createMany({ data: usersToCreate });
+        });
+      } catch (error) {
+        return {
+          message: translate(this.i18n, 'messages.transactionFailed'),
+          error: error.message,
+        };
+      }
     } else {
       return {
-        messsage: translate(this.i18n, 'messages.noUsersToCreate'),
+        message: translate(this.i18n, 'messages.noUsersToCreate'),
       };
     }
     return {
