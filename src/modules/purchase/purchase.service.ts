@@ -29,12 +29,6 @@ export class PurchaseService {
           );
         }
 
-        if(product.categoryId !== supplier.categoryId){
-          throw new Error(
-            `Producto con ID ${line.productId} no pertenece a la categoria del proveedor`,
-          );
-        }
-
         total += product.price * line.quantity;
         productsPrices.push(product.price);
       }

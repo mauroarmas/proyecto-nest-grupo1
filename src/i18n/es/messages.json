@@ -7,7 +7,10 @@
     "userUpdated": "Usuario actualizado con éxito",
     "userNotFound": "Usuario no encontrado",
     "existingMail": "El correo ya está en uso",
+    "existingTaxId": "El taxId (CUIT) ya está en uso",
     "deletedUser": "Usuario eliminado con éxito",
-    "profileUpdated": "Perfil actualizado con éxito"
+    "profileUpdated": "Perfil actualizado con éxito",
+    "categoryNotFound": "Categoría no encontrada",
+    "categoryDuplicated": "La categoría está duplicada"
     
 }
