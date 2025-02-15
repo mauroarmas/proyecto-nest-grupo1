@@ -25,7 +25,7 @@ import { RoleEnum } from 'src/common/constants';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
+@Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -45,6 +45,7 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
@@ -55,6 +56,7 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
+  @Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
   @Post('profile-img')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
@@ -78,8 +80,10 @@ export class UsersController {
     return data;
   }
 
-  @Patch('profile/:id')
-  updateProfile(@Param('id') id: string, @Body() updateProfile: UpdateProfileDto) {
-    return this.usersService.updateProfile(id, updateProfile);
+  @Roles(RoleEnum.USER)
+  @Patch('profile')
+  updateProfile(@Req() req, @Body() updateProfile: UpdateProfileDto) {
+    const { userId } = req.user;
+    return this.usersService.updateProfile(userId, updateProfile);
   }
 }

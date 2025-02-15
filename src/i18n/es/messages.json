@@ -7,7 +7,8 @@
     "userUpdated": "Usuario actualizado con éxito",
     "userNotFound": "Usuario no encontrado",
     "existingMail": "El correo ya está en uso",
-    "deletedUser": "Usuario eliminado con éxito",
-    "profileUpdated": "Perfil actualizado con éxito"
+    "userDeleted": "Usuario eliminado con éxito",
+    "profileUpdated": "Perfil actualizado con éxito",
+    "isDeleted": "Usuario no encontrado"
     
 }
