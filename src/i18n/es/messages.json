@@ -8,6 +8,7 @@
     "userNotFound": "Usuario no encontrado",
     "existingMail": "El correo ya está en uso",
     "deletedUser": "Usuario eliminado con éxito",
+    "invalidUsers": "Debes completar todos los campos",
     "profileUpdated": "Perfil actualizado con éxito",
     "invalidCredentials": "Credenciales inválidas",
     "serverError": "Error en el servidor: {error}",

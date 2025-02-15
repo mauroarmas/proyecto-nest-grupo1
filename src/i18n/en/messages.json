@@ -9,6 +9,7 @@
     "existingMail": "The mail is already in use",
     "deletedUser": "User deleted successfully",
     "profileUpdated": "Profile updated successfully",
+    "invalidUsers": "You must complete all fields",
     "invalidCredentials": "Invalid credentials",
     "serverError": "Server error: {error}",
     "userDeleted": "This account has been deactivated",

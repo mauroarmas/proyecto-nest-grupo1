@@ -128,7 +128,10 @@ export class UsersService {
 
   async findOne(id: string) {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id }, include: { profile: true } });
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        include: { profile: true },
+      });
       if (!user) {
         throw new Error(translate(this.i18n, 'messages.userNotFound'));
       }
@@ -253,6 +256,25 @@ export class UsersService {
 
   async uploadUsers(buffer: Buffer) {
     const users = await this.excelService.readExcel(buffer);
+
+    const requiredFields = [
+      'email',
+      'name',
+      'lastName',
+      'phone',
+      'address',
+      'password',
+    ];
+    const invalidUsers = users.filter((user) =>
+      requiredFields.some((field) => !user[field]),
+    );
+
+    if (invalidUsers.length > 0) {
+      return {
+        message: translate(this.i18n, 'messages.invalidUsers'),
+        invalidUsers,
+      };
+    }
 
     const emails = users.map((user) => user.email);
 
