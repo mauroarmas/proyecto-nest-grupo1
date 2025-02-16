@@ -39,36 +39,9 @@ export class SuppliersService {
         );
       }
 
-      let categories = [];
-
-      for (const category of createSupplierDto.categories) {
-        const c = await this.prisma.category.findUnique({
-          where: { id: category.categoryId },
-        });
-
-        if (!c) {
-          throw new HttpException(
-            await this.i18n.translate('messages.category.notFound'),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        if (
-          categories.some(
-            (cat) => cat.category.connect.id === category.categoryId,
-          )
-        ) {
-          throw new HttpException(
-            await this.i18n.translate('messages.category.duplicated'),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        categories.push({
-          category: {
-            connect: { id: category.categoryId },
-          },
-        });
-      }
+      const categories = await this.validateAndFormatCategories(
+        createSupplierDto.categories?.map(cat => cat.categoryId) || []
+      );
 
       const supplier = await this.prisma.supplier.create({
         data: {
@@ -166,23 +139,20 @@ export class SuppliersService {
 
   async update(id: string, updateSupplierDto: UpdateSupplierDto) {
     try {
-      const findSupplier = await this.prisma.supplier.findUnique({
-        where: { id }
-      });
-
+      const findSupplier = await this.prisma.supplier.findUnique({ where: { id } });
+  
       if (!findSupplier) {
         throw new HttpException(
           await this.i18n.translate('messages.supplier.notFound'),
           HttpStatus.NOT_FOUND,
         );
       }
-
-      // Verificar si el email ya está en uso por otro proveedor
+  
       if (updateSupplierDto.email) {
         const existingSupplier = await this.prisma.supplier.findUnique({
           where: { email: updateSupplierDto.email },
         });
-
+  
         if (existingSupplier && existingSupplier.id !== id) {
           throw new HttpException(
             await this.i18n.translate('messages.supplier.existingMail'),
@@ -190,13 +160,12 @@ export class SuppliersService {
           );
         }
       }
-
-      // Verificar si el taxId ya está en uso por otro proveedor
+  
       if (updateSupplierDto.taxId) {
         const existingSupplier = await this.prisma.supplier.findUnique({
           where: { taxId: updateSupplierDto.taxId },
         });
-
+  
         if (existingSupplier && existingSupplier.id !== id) {
           throw new HttpException(
             await this.i18n.translate('messages.supplier.existingTaxId'),
@@ -204,14 +173,73 @@ export class SuppliersService {
           );
         }
       }
+  
+      if (updateSupplierDto.categories) {
+        const categoryIds = updateSupplierDto.categories.map(cat => cat.categoryId);
+        const categories = await this.validateAndFormatCategories(categoryIds);
+  
+        await this.prisma.$transaction([
+          this.prisma.categorySupplier.deleteMany({ where: { supplierId: id } }),
+          this.prisma.categorySupplier.createMany({ data: categories.map(cat => ({ ...cat, supplierId: id })) }),
+        ]);
+      }
+  
+  
+      const { categories, ...supplierData } = updateSupplierDto;
+  
+      const supplier = await this.prisma.supplier.update({
+        where: { id },
+        data: supplierData,
+      });
 
+      return {
+        message: translate(this.i18n, 'messages.supplier.updated'),
+        supplier,
+      };
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-
+  
   remove(id: string) {
     return this.prisma.supplier.delete({ where: { id } });
   }
+
+  private async validateAndFormatCategories(categoryIds: string[]) {
+    if (!categoryIds || categoryIds.length === 0) {
+      return [];
+    }
+  
+    // Obtener las categorías existentes en la BD
+    const existingCategories = await this.prisma.category.findMany({
+      where: { id: { in: categoryIds } },
+      select: { id: true },
+    });
+  
+    // Convertir en un Set para validaciones rápidas
+    const existingCategoryIds = new Set(existingCategories.map(cat => cat.id));
+  
+    // Validar si todas las categorías existen
+    for (const categoryId of categoryIds) {
+      if (!existingCategoryIds.has(categoryId)) {
+        throw new HttpException(
+          await this.i18n.translate('messages.category.notFound'),
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+  
+    // Evitar duplicados en la misma solicitud
+    if (new Set(categoryIds).size !== categoryIds.length) {
+      throw new HttpException(
+        await this.i18n.translate('messages.category.duplicated'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  
+    // Formatear los datos para Prisma
+    return categoryIds.map(categoryId => ({ categoryId }));
+  }
+  
 }
