@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // Ajusta esto según tu base de datos
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -23,7 +23,7 @@ model User {
   profileImg  String?
   role        Role       @default(USER)
   profile     Profile?
-  cart        Cart?
+  carts       Cart[]    @relation("UserCarts")
   purchases   Purchase[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -41,16 +41,19 @@ model Profile {
 }
 
 model Cart {
-  id        String     @id @default(uuid())
-  status    String
-  total     Float
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id])
-  cartLines CartLine[]
-  sale      Sale?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  isDeleted Boolean    @default(false)
+  id         String      @id @default(uuid())
+  userId     String      
+  status     String      // 'pending', 'completed', 'cancelled'
+  total      Float
+  isDeleted  Boolean     @default(false)
+  notifiedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation("UserCarts", fields: [userId], references: [id])
+  cartLines  CartLine[]
+  sale       Sale?
+
+  @@index([userId, isDeleted, status])
 }
 
 model CartLine {

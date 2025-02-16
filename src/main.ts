@@ -8,7 +8,6 @@ import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { I18nValidationPipe } from 'nestjs-i18n';
 
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
@@ -30,9 +29,6 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new LoggerInterceptor())
 
-
-  app.useGlobalFilters(new ValidationsExceptionFilter());
-
   const configService = app.get(ConfigService);
 
   const PORT = configService.get<number>('PORT');
@@ -49,10 +45,10 @@ async function bootstrap() {
 
   await app.listen(PORT, () => {
     Logger.log(
-      `Application running the port: http://localhost:${PORT}`, //Application running the port
+      `Application running the port: http://localhost:${PORT}`,
       NestApplication.name,
     );
-    Logger.log(`Current Environment: ${NODE_ENV}`, NestApplication.name); //Current environment
+    Logger.log(`Current Environment: ${NODE_ENV}`, NestApplication.name);
   }); 
 
 }

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { EMAIL_PROVIDER, EmailService } from './messanging.types';
+import { EMAIL_PROVIDER, EmailService } from './messaging.types';
 
 @Injectable()
 export class MessagingService {
@@ -29,5 +29,13 @@ export class MessagingService {
       subject,
       body,
     });
+  }
+
+  async sendCartPendingEmail(input: { from: string; to: string }) {
+    const { from, to } = input;
+    const subject = 'Carrito pendiente';
+    const body = 'El carrito está pendiente';
+
+    await this.emailService.send({ from, to, subject, body });
   }
 }
