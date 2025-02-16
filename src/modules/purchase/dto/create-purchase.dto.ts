@@ -33,8 +33,5 @@ import {
     @IsArray()
     @IsNotEmpty()
     purchaseLines: CreatePurchaseLineDto[];
-  
-    @IsNumber()
-    @IsNotEmpty()
-    total: number;
+
   }

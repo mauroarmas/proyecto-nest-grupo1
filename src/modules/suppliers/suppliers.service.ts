@@ -19,7 +19,7 @@ export class SuppliersService {
   async create(createSupplierDto: CreateSupplierDto) {
     try {
       const findEmail = await this.prisma.supplier.findUnique({
-        where: { email: createSupplierDto.email },
+        where: { email: createSupplierDto.email, isDeleted: false },
       });
 
       if (findEmail) {
@@ -30,7 +30,7 @@ export class SuppliersService {
       }
 
       const findTaxId = await this.prisma.supplier.findUnique({
-        where: { taxId: createSupplierDto.taxId },
+        where: { taxId: createSupplierDto.taxId, isDeleted: false },
       });
       if (findTaxId) {
         throw new HttpException(
@@ -125,7 +125,7 @@ export class SuppliersService {
   async findOne(id: string) {
     try {
       const supplier = await this.prisma.supplier.findUnique({
-        where: { id },
+        where: { id, isDeleted: false },
         include: { categories: true },
       });
 
@@ -139,7 +139,7 @@ export class SuppliersService {
 
   async update(id: string, updateSupplierDto: UpdateSupplierDto) {
     try {
-      const findSupplier = await this.prisma.supplier.findUnique({ where: { id } });
+      const findSupplier = await this.prisma.supplier.findUnique({ where: { id, isDeleted: false } });
   
       if (!findSupplier) {
         throw new HttpException(
@@ -190,6 +190,7 @@ export class SuppliersService {
       const supplier = await this.prisma.supplier.update({
         where: { id },
         data: supplierData,
+        include: { categories: true }
       });
 
       return {
@@ -213,7 +214,7 @@ export class SuppliersService {
   
     // Obtener las categorías existentes en la BD
     const existingCategories = await this.prisma.category.findMany({
-      where: { id: { in: categoryIds } },
+      where: { id: { in: categoryIds }, isDeleted: false },
       select: { id: true },
     });
   

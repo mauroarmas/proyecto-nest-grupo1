@@ -17,7 +17,7 @@
     "invalidOrExpiredToken": "El enlace de recuperación es inválido o ha expirado",
     "product": {
         "notFound": "Producto no encontrado",
-        "categoryNotFound": "Una o más categorías no existen"
+        "categoryNotFound": "Una o más categorías no existen"        
     },
     "category": {
         "notFound": "Categoría no encontrada",
@@ -29,6 +29,11 @@
         "existingTaxId": "El taxId (CUIT) ya está en uso",
         "created" : "Proveedor registrado con éxito",
         "notFound": "Proveedor no encontrado",
-        "updated": "Proveedor actualizado con éxito"
+        "updated": "Proveedor actualizado con éxito",
+        "noCategories": "El proveedor no posee categorías asignadas"
+    },
+    "purchase": {
+        "created": "Compra creada con éxito",
+        "notSupplier": "Las categorias del producto {value} no coinciden con las del proveedor seleccionado"
     }
 }

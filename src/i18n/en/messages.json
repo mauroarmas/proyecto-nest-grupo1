@@ -30,6 +30,11 @@
         "existingMail": "The mail is already in use",
         "existingTaxId": "The taxId is already in use",
         "notFound": "Supplier not found",
-        "updated": "Supplier updated successfully"
+        "updated": "Supplier updated successfully",
+        "noCategories": "The supplier does not have assigned categories"
+    },
+    "purchase": {
+        "created": "Purchase created successfully",
+        "notSupplier": "The categories of the product {value} do not match those of the selected supplier"
     }
 }

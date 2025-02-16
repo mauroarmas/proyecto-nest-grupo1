@@ -40,18 +40,20 @@ export class ProductsService {
       );
     }
 
-    // return this.prisma.product.create({
-    //   data: {
-    //     name,
-    //     price,
-    //     stock,
-    //     categories: {
-    //       create: categoryIds.map((categoryId) => ({
-    //         categoryId,
-    //       })),
-    //     },
-    //   },
-    // });
+    return this.prisma.product.create({
+      data: {
+        name,
+        price,
+        stock,
+        gender: 'UNISEX', //Prueba
+        brandId: '1', //prueba
+        categories: {
+          create: categoryIds.map((categoryId) => ({
+            categoryId,
+          })),
+        },
+      },
+    });
   }
 
   async findAll() {
