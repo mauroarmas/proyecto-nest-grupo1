@@ -13,7 +13,6 @@ import { ExcelColumn } from 'src/common/interfaces';
 import { I18nService } from 'nestjs-i18n';
 import { translate } from 'src/utils/translation';
 
-
 @Injectable()
 export class UsersService {
   constructor(
@@ -28,7 +27,7 @@ export class UsersService {
         where: { email: newUser.email },
       });
       if (findEmail) {
-        throw new Error(translate(this.i18n, "message.existingMail"));
+        throw new Error(translate(this.i18n, 'messages.existingMail'));
       }
       const user = await this.prisma.user.create({
         data: {
@@ -39,9 +38,9 @@ export class UsersService {
           ),
           profile: {
             create: {
-              bio: newUser.bio || "",
+              bio: newUser.bio || '',
             },
-          }
+          },
         },
         include: { profile: true },
       });
@@ -70,7 +69,7 @@ export class UsersService {
 
   async findAll(pagination: PaginationArgs) {
     try {
-      const {search, startDate, endDate, date} = pagination;
+      const { search, startDate, endDate, date } = pagination;
       const dateObj = new Date(date);
 
       const where: Prisma.UserWhereInput = {
@@ -96,31 +95,32 @@ export class UsersService {
               },
             },
           ],
-        ...(startDate && endDate && {
-          createdAt: {
-            gte: new Date(startDate),
-            lte: new Date(endDate),
-          },
+          ...(startDate &&
+            endDate && {
+              createdAt: {
+                gte: new Date(startDate),
+                lte: new Date(endDate),
+              },
+            }),
+          ...(date && {
+            createdAt: {
+              gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
+              lte: new Date(dateObj.setUTCHours(23, 59, 59, 999)),
+            },
+          }),
         }),
-        ...(date && {
-          createdAt: {
-            gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
-            lte: new Date(dateObj.setUTCHours(23, 59, 59, 999)),
-          },
-        }),
-        })
-      }
+      };
 
       const baseQuery = {
         where,
         ...getPaginationFilter(pagination),
-      }
+      };
       const total = await this.prisma.user.count({ where });
 
       const users = await this.prisma.user.findMany(baseQuery);
 
-      const res =paginate( users, total, pagination);
-      return res
+      const res = paginate(users, total, pagination);
+      return res;
     } catch (error) {
       return { error: error.message };
     }
@@ -128,7 +128,10 @@ export class UsersService {
 
   async findOne(id: string) {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        include: { profile: true },
+      });
       if (!user) {
         throw new Error(translate(this.i18n, 'messages.userNotFound'));
       }
@@ -164,7 +167,10 @@ export class UsersService {
         where: { id },
         data: { isDeleted: true },
       });
-      return { deletedUser, message: translate(this.i18n, 'messages.userDeleted') };
+      return {
+        deletedUser,
+        message: translate(this.i18n, 'messages.deletedUser'),
+      };
     } catch (error) {
       return { error: error.message };
     }
@@ -175,12 +181,24 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     file: Express.Multer.File,
   ) {
+    const validExtensions = ['jpg', 'webp', 'png', 'gif', 'tiff', 'bmp', 'svg'];
+    const maxFileSize = 1.5 * 1024 * 1024; // 1.5 MB
+
+    const fileExtension = file.originalname.split('.').pop().toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      throw new Error(translate(this.i18n, 'messages.invalidFileExtension'));
+    }
+
+    if (file.size > maxFileSize) {
+      throw new Error(translate(this.i18n, 'messages.fileTooLarge'));
+    }
+
     const findUser = await this.prisma.user.findUnique({ where: { id } });
     if (!findUser) {
       throw new Error(translate(this.i18n, 'messages.userNotFound'));
     }
     const { url, key } = await this.awsService.uploadFile(file, id);
-    const user = await this.prisma.user
+    await this.prisma.user
       .update({
         where: {
           id,
@@ -197,13 +215,15 @@ export class UsersService {
         });
       });
     return {
-      user,
-      Message: translate(this.i18n, 'messages.profileImg')
+      message: translate(this.i18n, 'messages.profileImg'),
     };
   }
 
   async exportAllExcel(res: Response, userId: string) {
-    const users = await this.prisma.user.findMany({ where: {isDeleted: false}, include: {profile: true}});
+    const users = await this.prisma.user.findMany({
+      where: { isDeleted: false },
+      include: { profile: true },
+    });
 
     const columns: ExcelColumn[] = [
       { header: 'name', key: 'name' },
@@ -243,31 +263,68 @@ export class UsersService {
     await this.prisma.report.create({
       data: { reportUrl },
     });
-   await this.excelService.exportToResponse(res, workbook, 'usuarios.xlsx');
-}
-
-async uploadUsers(buffer: Buffer) {
-  const users = await this.excelService.readExcel(buffer);
-  
-  const emails= users.map((user) => user.email);
-  
-  const existingEmails = await this.prisma.user.findMany({
-    where: { email: { in: emails } },
-    select: { email: true },
-  });
-  
-  const usersToCreate = users.filter((user) => !existingEmails.some(({ email }) => email === user.email));
-  
-  if (usersToCreate.length > 0) {
-    await this.prisma.user.createMany({ data: usersToCreate });
-  } else {
-    return {
-      messsage: translate(this.i18n, 'messages.noUsersToCreate')
-    }
+    await this.excelService.exportToResponse(res, workbook, 'usuarios.xlsx');
   }
-  return {
-    users,
-    message: translate(this.i18n, 'messages.uploadUsers')
-  };
-}
+
+  async uploadUsers(buffer: Buffer, fileName: string) {
+    const validExtensions = ['xlsx', 'xls', 'csv'];
+
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      throw new Error(translate(this.i18n, 'messages.invalidFileExtension'));
+    }
+
+    const users = await this.excelService.readExcel(buffer);
+
+    const requiredFields = [
+      'email',
+      'name',
+      'lastName',
+      'phone',
+      'address',
+      'password',
+    ];
+    const invalidUsers = users.filter((user) =>
+      requiredFields.some((field) => !user[field]),
+    );
+
+    if (invalidUsers.length > 0) {
+      return {
+        message: translate(this.i18n, 'messages.invalidUsers'),
+        invalidUsers,
+      };
+    }
+
+    const emails = users.map((user) => user.email);
+
+    const existingEmails = await this.prisma.user.findMany({
+      where: { email: { in: emails } },
+      select: { email: true },
+    });
+
+    const usersToCreate = users.filter(
+      (user) => !existingEmails.some(({ email }) => email === user.email),
+    );
+
+    if (usersToCreate.length > 0) {
+      try {
+        await this.prisma.$transaction(async (prisma) => {
+          await prisma.user.createMany({ data: usersToCreate });
+        });
+      } catch (error) {
+        return {
+          message: translate(this.i18n, 'messages.transactionFailed'),
+          error: error.message,
+        };
+      }
+    } else {
+      return {
+        message: translate(this.i18n, 'messages.noUsersToCreate'),
+      };
+    }
+    return {
+      users,
+      message: translate(this.i18n, 'messages.uploadUsers'),
+    };
+  }
 }
