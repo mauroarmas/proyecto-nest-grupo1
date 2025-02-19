@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query } from '@nestjs/common';
 import { PurchaseService } from './purchase.service';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
+import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 
 @Controller('purchase')
 export class PurchaseController {
@@ -12,8 +13,8 @@ export class PurchaseController {
   }
 
   @Get()
-  findAll() {
-    return this.purchaseService.findAll();
+  findAll(@Query() pagination: PaginationArgs) {
+    return this.purchaseService.findAll(pagination);
   }
 
   @Get(':id')
