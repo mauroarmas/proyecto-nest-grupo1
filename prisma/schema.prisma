@@ -12,6 +12,15 @@ enum Role {
   USER
 }
 
+enum Gender {
+  HOMBRE
+  MUJER
+  UNISEX
+  BEBÉ
+  NIÑO
+  NIÑA
+}
+
 model User {
   id          String   @id @default(uuid())
   name        String
@@ -80,16 +89,16 @@ model Sale {
 }
 
 model Purchase {
-  id        String   @id @default(uuid())
-  total     Float
-  invoiceUrl String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id            String         @id @default(uuid())
+  total         Float
+  invoiceUrl    String?
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
   purchaseLines PurchaseLine[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
-  supplier  Supplier @relation(fields: [supplierId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  isDeleted     Boolean        @default(false)
+  supplier      Supplier       @relation(fields: [supplierId], references: [id])
   supplierId    String
 }
 
@@ -107,7 +116,7 @@ model PurchaseLine {
 }
 
 model Product {
-  id            String         @id @default(uuid())
+  id            String            @id @default(uuid())
   name          String
   price         Float
   stock         Int
@@ -115,9 +124,21 @@ model Product {
   cartLines     CartLine[]
   purchaseLines PurchaseLine[]
   categories    CategoryProduct[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  isDeleted     Boolean        @default(false)
+  brand         Brand             @relation(fields: [brandId], references: [id])
+  brandId       String
+  gender        Gender
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  isDeleted     Boolean           @default(false)
+}
+
+model Brand {
+  id        String    @id @default(uuid())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isDeleted Boolean   @default(false)
 }
 
 model ProductImage {
@@ -131,27 +152,40 @@ model ProductImage {
 }
 
 model Category {
-  id        String     @id @default(uuid())
+  id        String             @id @default(uuid())
   name      String
   products  CategoryProduct[]
-  suppliers Supplier[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  isDeleted Boolean    @default(false)
+  suppliers CategorySupplier[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  isDeleted Boolean            @default(false)
 }
 
 model Supplier {
-  id         String   @id @default(uuid())
+  id         String             @id @default(uuid())
   name       String
   phone      String
-  email      String
-  taxId      String
+  email      String             @unique
+  taxId      String             @unique
+  categories CategorySupplier[]
+  purchases  Purchase[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  isDeleted  Boolean            @default(false)
+}
+
+model CategorySupplier {
   categoryId String
-  category  Category @relation(fields: [categoryId], references: [id])
-  purchases Purchase[]
+  supplierId String
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
+
+  @@id([categoryId, supplierId])
 }
 
 model Report {

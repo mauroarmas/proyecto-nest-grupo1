@@ -6,7 +6,7 @@
     "userCreated": "User created successfully",
     "userUpdated": "User updated successfully",
     "userNotFound": "User not found",
-    "existingMail": "The mail is already in use",
+
     "deletedUser": "User deleted successfully",
     "profileUpdated": "Profile updated successfully",
     "invalidUsers": "You must complete all fields",
@@ -26,6 +26,19 @@
     },
     "category": {
         "notFound": "Category not found",
-        "productNotFound": "One or more products do not exist"
+        "productNotFound": "One or more products do not exist",
+        "duplicated": "The same category was selected one or more times"
+    },
+    "supplier": {
+        "created" : "Supplier registered successfully",
+        "existingMail": "The mail is already in use",
+        "existingTaxId": "The taxId is already in use",
+        "notFound": "Supplier not found",
+        "updated": "Supplier updated successfully",
+        "noCategories": "The supplier does not have assigned categories"
+    },
+    "purchase": {
+        "created": "Purchase created successfully",
+        "notSupplier": "The categories of the product {value} do not match those of the selected supplier"
     }
 }

@@ -45,6 +45,8 @@ export class ProductsService {
         name,
         price,
         stock,
+        gender: 'UNISEX', //Prueba
+        brandId: '1', //prueba
         categories: {
           create: categoryIds.map((categoryId) => ({
             categoryId,

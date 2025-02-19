@@ -6,7 +6,6 @@
     "userCreated": "Usuario creado con éxito",
     "userUpdated": "Usuario actualizado con éxito",
     "userNotFound": "Usuario no encontrado",
-    "existingMail": "El correo ya está en uso",
     "deletedUser": "Usuario eliminado con éxito",
     "invalidUsers": "Debes completar todos los campos",
     "profileUpdated": "Perfil actualizado con éxito",
@@ -22,10 +21,23 @@
     "invalidOrExpiredToken": "El enlace de recuperación es inválido o ha expirado",
     "product": {
         "notFound": "Producto no encontrado",
-        "categoryNotFound": "Una o más categorías no existen"
+        "categoryNotFound": "Una o más categorías no existen"        
     },
     "category": {
         "notFound": "Categoría no encontrada",
-        "productNotFound": "Uno o más productos no existen"
+        "productNotFound": "Uno o más productos no existen",
+        "duplicated": "Se seleccionó una o más veces la misma categoria"
+    },
+    "supplier": {
+        "existingMail": "El correo ya está en uso",
+        "existingTaxId": "El taxId (CUIT) ya está en uso",
+        "created" : "Proveedor registrado con éxito",
+        "notFound": "Proveedor no encontrado",
+        "updated": "Proveedor actualizado con éxito",
+        "noCategories": "El proveedor no posee categorías asignadas"
+    },
+    "purchase": {
+        "created": "Compra creada con éxito",
+        "notSupplier": "Las categorias del producto {value} no coinciden con las del proveedor seleccionado"
     }
 }
