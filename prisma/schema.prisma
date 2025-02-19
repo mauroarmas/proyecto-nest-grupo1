@@ -22,21 +22,21 @@ enum Gender {
 }
 
 model User {
-  id         String     @id @default(uuid())
-  name       String
-  lastName   String
-  address    String
-  phone      String
-  email      String     @unique
-  password   String
-  profileImg String?
-  role       Role       @default(USER)
-  profile    Profile?
-  cart       Cart?
-  purchases  Purchase[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  isDeleted  Boolean    @default(false)
+  id          String   @id @default(uuid())
+  name        String
+  lastName    String
+  address     String 
+  phone       String
+  email       String @unique
+  password    String
+  profileImg  String?
+  role        Role       @default(USER)
+  profile     Profile?
+  carts       Cart[]    @relation("UserCarts")
+  purchases   Purchase[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
 }
 
 model Profile {
@@ -50,16 +50,19 @@ model Profile {
 }
 
 model Cart {
-  id        String     @id @default(uuid())
-  status    String
-  total     Float
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id])
-  cartLines CartLine[]
-  sale      Sale?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  isDeleted Boolean    @default(false)
+  id         String      @id @default(uuid())
+  userId     String      
+  status     String      // 'pending', 'completed', 'cancelled'
+  total      Float
+  isDeleted  Boolean     @default(false)
+  notifiedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation("UserCarts", fields: [userId], references: [id])
+  cartLines  CartLine[]
+  sale       Sale?
+
+  @@index([userId, isDeleted, status])
 }
 
 model CartLine {

@@ -5,7 +5,7 @@ import { LoginAuthDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'src/common/interfaces';
 import { comparePassword, hashPassword } from 'src/utils/encryption';
-import { MessagingService } from '../messanging/messanging.service';
+import { MessagingService } from '../messaging/messaging.service';
 import { messagingConfig } from 'src/common/constants';
 import { RecoverPasswordDto, ResetPasswordDto } from './dto/auth.dto';
 import { I18nService } from 'nestjs-i18n';
