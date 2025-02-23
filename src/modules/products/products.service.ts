@@ -45,11 +45,12 @@ export class ProductsService {
     //     name,
     //     price,
     //     stock,
-    //     images: {
-    //       create: images ? images.map((image) => ({ url: image.url })) : [],
-    //     },
+    //     gender: 'UNISEX', //Prueba
+    //     brandId: '1', //prueba
     //     categories: {
-    //       create: categoryIds.map((categoryId) => ({ categoryId })),
+    //       create: categoryIds.map((categoryId) => ({
+    //         categoryId,
+    //       })),
     //     },
     //   },
     // });

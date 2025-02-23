@@ -29,9 +29,6 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new LoggerInterceptor())
 
-
-  app.useGlobalFilters(new ValidationsExceptionFilter());
-
   const configService = app.get(ConfigService);
 
   const PORT = configService.get<number>('PORT');
