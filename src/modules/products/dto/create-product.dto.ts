@@ -33,6 +33,14 @@ export class CreateProductDto {
     stock: number;
 
     @ApiProperty({
+        example: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
+        description: 'Lista de URLs de imágenes del producto'
+    })
+    @IsArray()
+    @IsUUID()
+    images: string[];
+
+    @ApiProperty({
         example: ['550e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440111'],
         description: 'Lista de IDs de categorías asociadas',
         type: [String]

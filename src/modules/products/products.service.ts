@@ -12,7 +12,7 @@ export class ProductsService {
   ) { }
 
   async create(newProduct: CreateProductDto) {
-    const { name, price, stock, categoryIds } = newProduct;
+    const { name, price, stock, categoryIds, images } = newProduct;
 
     const existingProduct = await this.prisma.product.findFirst({
       where: { name },
@@ -40,18 +40,19 @@ export class ProductsService {
       );
     }
 
-    return this.prisma.product.create({
-      data: {
-        name,
-        price,
-        stock,
-        categories: {
-          create: categoryIds.map((categoryId) => ({
-            categoryId,
-          })),
-        },
-      },
-    });
+    // return this.prisma.product.create({
+    //   data: {
+    //     name,
+    //     price,
+    //     stock,
+    //     images: {
+    //       create: images ? images.map((image) => ({ url: image.url })) : [],
+    //     },
+    //     categories: {
+    //       create: categoryIds.map((categoryId) => ({ categoryId })),
+    //     },
+    //   },
+    // });
   }
 
   async findAll() {
@@ -86,10 +87,10 @@ export class ProductsService {
       );
     }
 
-    return this.prisma.product.update({
-      where: { id },
-      data: updateProductDto,
-    });
+    // return this.prisma.product.update({
+    //   where: { id },
+    //   data: updateProductDto,
+    // });
   }
 
   async remove(id: string) {
@@ -103,6 +104,7 @@ export class ProductsService {
       );
     }
 
+    // Elimina el producto. Gracias a la cascada, las imágenes se eliminarán automáticamente.
     return this.prisma.product.delete({ where: { id } });
   }
 }
