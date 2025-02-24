@@ -10,5 +10,6 @@
     "minValue": "{property} no puede ser menor a {value}",
     "maxValue": "{property} no puede ser mayor a {value}",
     "isUUID": "{property} debe ser un UUID válido",
-    "isNumber": "{property} debe ser un número válido"
+    "isNumber": "{property} debe ser un número válido",
+    "isOptional": "{property} es opcional"
 }

@@ -4,8 +4,9 @@ import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class CreateCategoryDto {
     @ApiProperty({
-        example: 'Indumentaria femenina',
-        description: 'Nombre de la categoría (mínimo 3 y máximo 30 caracteres)',
+        example: 'womens clothing',
+        description: 'Name of the category',
+        type: String,
         maxLength: 30,
         minLength: 3
     })
@@ -17,7 +18,7 @@ export class CreateCategoryDto {
 
     @ApiProperty({
         example: ['550e8400-e29b-41d4-a716-446655440000'],
-        description: 'Lista de IDs de productos asociados',
+        description: 'List of product IDs',
         type: [String]
     })
     @IsArray()

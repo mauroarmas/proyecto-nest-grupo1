@@ -6,7 +6,6 @@
     "userCreated": "User created successfully",
     "userUpdated": "User updated successfully",
     "userNotFound": "User not found",
-
     "deletedUser": "User deleted successfully",
     "profileUpdated": "Profile updated successfully",
     "invalidUsers": "You must complete all fields",
@@ -20,17 +19,15 @@
     "passwordUpdated": "Password updated successfully",
     "recoveryEmailSent": "A recovery email has been sent",
     "invalidOrExpiredToken": "The recovery link is invalid or has expired",
-    "product": {
-        "notFound": "Product not found",
-        "categoryNotFound": "One or more categories do not exist"
-    },
-    "category": {
-        "notFound": "Category not found",
-        "productNotFound": "One or more products do not exist",
-        "duplicated": "The same category was selected one or more times"
-    },
+    "categoryDuplicated": "A category with that name already exists",
+    "categoryNoFound": "Category not found",
+    "categoryInvalidName": "Invalid category name",
+    "duplicateBrand": "A brand with that name already exists",
+    "brandNotFound": "Brand not found",
+    "ProductNotFound": "Product not found",
+    "invalidNumber": "The value must be a positive number",
     "supplier": {
-        "created" : "Supplier registered successfully",
+        "created": "Supplier registered successfully",
         "existingMail": "The mail is already in use",
         "existingTaxId": "The taxId is already in use",
         "notFound": "Supplier not found",

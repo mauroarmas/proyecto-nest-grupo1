@@ -11,7 +11,9 @@ import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { ProductsModule } from '../products/products.module';
 import { CategoriesModule } from '../categories/categories.module';
+import { ImgProductsModule } from '../img-products/img-products.module';
 import { CartModule } from '../cart/cart.module';
+import { BrandModule } from '../brand/brand.module';
 
 @Module({
   imports: [
@@ -29,9 +31,11 @@ import { CartModule } from '../cart/cart.module';
     UsersModule,
     ProductsModule,
     CategoriesModule,
-    CartModule
+    ImgProductsModule,
+    CartModule,
+    BrandModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

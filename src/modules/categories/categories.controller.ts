@@ -10,95 +10,94 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post()
-  @ApiOperation({ summary: 'Crear una nueva categoría' })
+  @ApiOperation({ summary: 'Create a new category' })
   @ApiBody({ type: CreateCategoryDto })
   @ApiResponse({
     status: 201,
-    description: 'Categoría creada exitosamente',
+    description: 'Category created successfully',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos inválidos en la solicitud',
+    description: 'Invalid data in the request',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todas las categorías' })
+  @ApiOperation({ summary: 'List all categories' })
   @ApiBody({ type: CreateCategoryDto })
   @ApiResponse({
     status: 200,
-    description: 'Lista de categorías obtenida exitosamente',
+    description: 'Categories found successfully',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   findAll() {
     return this.categoriesService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar una categoría por ID' })
+  @ApiOperation({ summary: 'Search for a category by ID' })
   @ApiBody({ type: CreateCategoryDto })
   @ApiResponse({
     status: 200,
-    description: 'Categoría encontrada exitosamente',
+    description: 'Category found successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Categoría no encontrada',
+    description: 'Category not found',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   findOne(@Param('id') id: string) {
     return this.categoriesService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar una categoría' })
+  @ApiOperation({ summary: 'Update a category' })
   @ApiBody({ type: UpdateCategoryDto })
   @ApiResponse({
     status: 200,
-    description: 'Categoría actualizada exitosamente',
+    description: 'Category updated successfully',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos inválidos en la solicitud',
+    description: 'Invalid data in the request',
   })
   @ApiResponse({
     status: 404,
-    description: 'Categoría no encontrada',
+    description: 'Category not found',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar una categoría' })
-  @ApiBody({ type: CreateCategoryDto })
+  @ApiOperation({ summary: 'Delete a category' })
   @ApiResponse({
     status: 204,
-    description: 'Categoría eliminada exitosamente',
+    description: 'Category deleted successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Categoría no encontrada',
+    description: 'Category not found',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);
