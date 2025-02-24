@@ -24,7 +24,6 @@ export class CategoriesService {
       throw new NotFoundException(errorMessage);
     }
 
-    // Validar si existen productos válidos (si el array no está vacío)
     if (productIds.length > 0) {
       const products = await this.prisma.product.findMany({
         where: {
@@ -41,7 +40,6 @@ export class CategoriesService {
       }
     }
 
-    // Crear la categoría, incluso con un array de productos vacío
     const category = await this.prisma.category.create({
       data: {
         name,
@@ -96,53 +94,46 @@ export class CategoriesService {
       where: { id },
     });
 
-    // Si la categoría no existe, lanzar excepción
     if (!category) {
       throw new NotFoundException(
         await this.i18n.translate('category.notFound'),
       );
     }
 
-    // Si se han pasado nuevos productIds, actualizar los productos asociados a la categoría
     if (productIds && productIds.length > 0) {
       const products = await this.prisma.product.findMany({
         where: {
           id: {
-            in: productIds, // Filtrar productos que están en productIds
+            in: productIds,
           },
         },
       });
 
-      // Si no se encuentran todos los productos, lanzar excepción
       if (products.length !== productIds.length) {
         throw new NotFoundException(
           await this.i18n.translate('category.productNotFound'),
         );
       }
 
-      // Eliminar las relaciones previas entre productos y categoría
       await this.prisma.categoryProduct.deleteMany({
         where: { categoryId: id },
       });
 
-      // Crear las nuevas relaciones entre productos y categoría
       await this.prisma.categoryProduct.createMany({
         data: productIds.map((productId) => ({
-          categoryId: id, // Relacionar la categoría con los productos
+          categoryId: id, 
           productId,
         })),
       });
     }
 
-    // Si se ha proporcionado un nuevo nombre para la categoría, actualizar el nombre
     if (name) {
       await this.prisma.category.update({
         where: { id },
-        data: { name }, // Actualizar el nombre de la categoría
+        data: { name },
       });
     }
 
-    // Devolver la categoría actualizada
     return this.findOne(id);
   }
 
@@ -156,10 +147,6 @@ export class CategoriesService {
         await this.i18n.translate('category.notFound'),
       );
     }
-
-    // Elimina relaciones de productos antes de eliminar la categoría, 
-    // no elimina los productos (los deja sin categoria asociada), 
-    // ni le carga una por defecto.
 
     await this.prisma.categoryProduct.deleteMany({
       where: { categoryId: id },

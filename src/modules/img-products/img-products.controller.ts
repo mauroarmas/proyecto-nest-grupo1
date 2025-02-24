@@ -7,28 +7,28 @@ import { UpdateImgProductDto } from './dto/update-img-product.dto';
 export class ImgProductsController {
   constructor(private readonly imgProductsService: ImgProductsService) { }
 
-  @Post()
-  create(@Body() createImgProductDto: CreateImgProductDto) {
-    return this.imgProductsService.create(createImgProductDto);
-  }
+  // @Post()
+  // create(@Body() createImgProductDto: CreateImgProductDto) {
+  //   return this.imgProductsService.create(createImgProductDto);
+  // }
 
-  @Get()
-  findAll() {
-    return this.imgProductsService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.imgProductsService.findAll();
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.imgProductsService.findOne(id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.imgProductsService.findOne(id);
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateImgProductDto: UpdateImgProductDto) {
-    return this.imgProductsService.update(id, updateImgProductDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateImgProductDto: UpdateImgProductDto) {
+  //   return this.imgProductsService.update(id, updateImgProductDto);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.imgProductsService.remove(id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.imgProductsService.remove(id);
+  // }
 }
