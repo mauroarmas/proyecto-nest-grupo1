@@ -54,7 +54,7 @@ export class CreateProductDto {
         example: '550e8400-e29b-41d4-a716-446655440000',
         description: 'ID de la marca del producto'
     })
-    // @IsUUID('4', { message: i18nValidationMessage('errors.isUUID') })
+    @IsUUID('4', { message: i18nValidationMessage('errors.isUUID') })
     brandId: string;
 
     @ApiProperty({

@@ -46,7 +46,7 @@ export class ProductsService {
     return this.prisma.product.create({
       data: {
         name,
-        price,
+        price, 
         stock,
         gender: 'UNISEX', //Prueba
         brandId: '1', //prueba
