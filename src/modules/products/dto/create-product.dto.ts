@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsNumber, IsArray, IsUUID, Min, Max, MaxLength, MinLength, IsPositive } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsArray, IsUUID, Min, Max, MaxLength, MinLength, IsPositive, IsEnum } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
+import { Gender } from '@prisma/client';
 
 export class CreateProductDto {
     @ApiProperty({
@@ -17,7 +18,7 @@ export class CreateProductDto {
 
     @ApiProperty({
         example: 4999.99,
-        description: 'Precio del producto (debe ser un número positivo)'
+        description: 'Precio del producto'
     })
     @IsNumber({}, { message: i18nValidationMessage('errors.isNumber') })
     @IsPositive({ message: i18nValidationMessage('errors.isPositive', { property: 'price' }) })
@@ -48,4 +49,19 @@ export class CreateProductDto {
     @IsArray()
     @IsUUID('4', { each: true, message: i18nValidationMessage('errors.isUUID') })
     categoryIds: string[];
+
+    @ApiProperty({
+        example: '550e8400-e29b-41d4-a716-446655440000',
+        description: 'ID de la marca del producto'
+    })
+    // @IsUUID('4', { message: i18nValidationMessage('errors.isUUID') })
+    brandId: string;
+
+    @ApiProperty({
+        example: Gender.UNISEX,
+        description: 'Género asociado al producto',
+        enum: Gender
+    })
+    @IsEnum(Gender, { message: i18nValidationMessage('errors.isEnum') })
+    gender: Gender;
 }
