@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -14,10 +14,16 @@ export class BrandService {
   async create(createBrandDto: CreateBrandDto) {
     const { name } = createBrandDto;
 
+    const existingBrands = await this.prisma.brand.findMany({
+      where: { name },
+    });
+
+    if (existingBrands.length > 0) {
+      throw new BadRequestException(this.i18n.translate('messages.duplicateBrand'));
+    }
+
     return this.prisma.brand.create({
-      data: {
-        name,
-      },
+      data: { name },
     });
   }
 
@@ -26,7 +32,11 @@ export class BrandService {
   }
 
   async findOne(id: string) {
-    return this.prisma.brand.findUnique({ where: { id } });
+    const brand = await this.prisma.brand.findUnique({ where: { id } });
+    if (!brand) {
+      throw new BadRequestException(this.i18n.translate('messages.brandNotFound'));
+    }
+    return brand;
   }
 
   async update(id: string, updateBrandDto: UpdateBrandDto) {
@@ -34,7 +44,15 @@ export class BrandService {
 
     const brand = await this.prisma.brand.findUnique({ where: { id } });
     if (!brand) {
-      throw new Error(await this.i18n.translate('brand.errors.notFound'));
+      throw new BadRequestException(this.i18n.translate('messages.brandNotFound'));
+    }
+
+    const existingBrands = await this.prisma.brand.findMany({
+      where: { name },
+    });
+
+    if (existingBrands.length > 0 && existingBrands[0].id !== id) {
+      throw new BadRequestException(this.i18n.translate('messages.duplicateBrand'));
     }
 
     return this.prisma.brand.update({
@@ -46,7 +64,7 @@ export class BrandService {
   async remove(id: string) {
     const brand = await this.prisma.brand.findUnique({ where: { id } });
     if (!brand) {
-      throw new Error(await this.i18n.translate('brand.errors.notFound'));
+      throw new BadRequestException(this.i18n.translate('messages.brandNotFound'));
     }
 
     return this.prisma.brand.delete({ where: { id } });

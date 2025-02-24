@@ -12,14 +12,17 @@ export class ProductsService {
   ) { }
 
   async create(newProduct: CreateProductDto) {
-    const { name, price, stock, categoryIds, images, brandId, gender } = newProduct;
+    const { name, price, stock, categoryIds, brandId, gender } = newProduct;
 
     const existingProduct = await this.prisma.product.findFirst({ where: { name } });
 
-    // Si el producto ya existe, aumentamos el stock
     if (existingProduct) {
+      if (price <= 0) {
+        throw new ConflictException(this.i18n.translate('messages.invalidNumber'));
+      }
+
       if (stock <= 0) {
-        throw new ConflictException(await this.i18n.translate('product.invalidStock'));
+        throw new ConflictException(this.i18n.translate('messages.invalidNumber'));
       }
       return this.prisma.product.update({
         where: { id: existingProduct.id },
@@ -34,36 +37,36 @@ export class ProductsService {
     });
 
     if (categories.length !== categoryIds.length) {
-      throw new NotFoundException(await this.i18n.translate('product.categoryNotFound'));
+      throw new NotFoundException(this.i18n.translate('messages.categoryNoFound'));
     }
 
+    // CREA PRODUCTOS SIN IMAGENES POR EL MOMENTO!!
     return this.prisma.product.create({
       data: {
         name,
         price,
         stock,
-        gender: 'UNISEX', //Prueba
-        brandId: '1', //prueba
+        gender: gender,
+        brandId,
         categories: { create: categoryIds.map(id => ({ categoryId: id })) },
-        images: { create: images.map(url => ({ url })) },
       },
     });
   }
 
   async findAll() {
     return this.prisma.product.findMany({
-      include: { categories: true, images: true, brand: true },
+      include: { categories: true, brand: true },
     });
   }
 
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { categories: true, images: true, brand: true },
+      include: { categories: true, brand: true },
     });
 
     if (!product) {
-      throw new NotFoundException(await this.i18n.translate('product.notFound'));
+      throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
     }
     return product;
   }
@@ -74,40 +77,22 @@ export class ProductsService {
     });
 
     if (!product) {
-      throw new NotFoundException(await this.i18n.translate('product.notFound'));
+      throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
     }
 
-    const { categoryIds, images, ...updateData } = updateProductDto;
+    const { categoryIds, ...updateData } = updateProductDto;
 
-    return this.prisma.product.update({
-      where: { id },
-      data: {
-        ...updateData,
-        categories: categoryIds
-          ? {
-            deleteMany: {},
-            create: categoryIds.map(categoryId => ({ categoryId })),
-          }
-          : undefined,
-        images: images
-          ? {
-            deleteMany: {},
-            create: images.map(url => ({ url })),
-          }
-          : undefined,
-      },
-      include: {
-        categories: true,
-        images: true,
-      },
+    const categories = await this.prisma.category.findMany({
+      where: { id: { in: categoryIds } },
     });
+
   }
 
   async remove(id: string) {
     const product = await this.prisma.product.findUnique({ where: { id } });
 
     if (!product) {
-      throw new NotFoundException(await this.i18n.translate('product.notFound'));
+      throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
     }
 
     return this.prisma.product.delete({ where: { id } });

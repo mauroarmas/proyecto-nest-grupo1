@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -20,8 +20,12 @@ export class CategoriesService {
     );
 
     if (categoryExists) {
-      const errorMessage = await this.i18n.translate('category.alreadyExists');
-      throw new NotFoundException(errorMessage);
+      throw new BadRequestException(this.i18n.translate('messages.categoryDuplicated'));
+    }
+
+    const invalidCharacters = /[^a-zA-Z0-9\s]/;
+    if (invalidCharacters.test(name)) {
+      throw new BadRequestException(this.i18n.translate('messages.categoryInvalidName'));
     }
 
     if (productIds.length > 0) {
@@ -34,9 +38,7 @@ export class CategoriesService {
       });
 
       if (productIds.length !== products.length) {
-        throw new NotFoundException(
-          await this.i18n.translate('category.productNotFound'),
-        );
+        throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
       }
     }
 
@@ -79,9 +81,7 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('category.notFound'),
-      );
+      throw new NotFoundException(this.i18n.translate('messages.categoryNoFound'));
     }
 
     return category;
@@ -95,9 +95,7 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('category.notFound'),
-      );
+      throw new NotFoundException(this.i18n.translate('messages.categoryNoFound'));
     }
 
     if (productIds && productIds.length > 0) {
@@ -110,9 +108,7 @@ export class CategoriesService {
       });
 
       if (products.length !== productIds.length) {
-        throw new NotFoundException(
-          await this.i18n.translate('category.productNotFound'),
-        );
+        throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
       }
 
       await this.prisma.categoryProduct.deleteMany({
@@ -121,7 +117,7 @@ export class CategoriesService {
 
       await this.prisma.categoryProduct.createMany({
         data: productIds.map((productId) => ({
-          categoryId: id, 
+          categoryId: id,
           productId,
         })),
       });
@@ -143,9 +139,7 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('category.notFound'),
-      );
+      throw new NotFoundException(this.i18n.translate('messages.categoryNoFound'));
     }
 
     await this.prisma.categoryProduct.deleteMany({
