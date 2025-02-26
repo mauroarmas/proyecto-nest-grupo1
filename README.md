@@ -87,7 +87,7 @@ Si deseas contribuir al proyecto, por favor sigue los siguientes pasos:
 
 ## Equipo de trabajo
 
-- Ezequiel Alejandro Sale: https://github.com/Ezequiel-Sale | https://www.linkedin.com/in/ezequiel-alejandro-sale-ab18aa165/
 - Georgina Costilla: https://github.com/georginacostilla | https://www.linkedin.com/in/georgina-costilla/
 - Mauro Nahuel Armas: https://github.com/mauroarmas | https://www.linkedin.com/in/mauro-armas/
 - Luciano Casacci: https://github.com/lucasacci | https://www.linkedin.com/in/luciano-casacci-66416951/
+- Ezequiel Alejandro Sale: https://github.com/Ezequiel-Sale | https://www.linkedin.com/in/ezequiel-alejandro-sale-ab18aa165/
