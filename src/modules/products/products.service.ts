@@ -8,7 +8,6 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
 
-
 @Injectable()
 export class ProductsService {
   constructor(
@@ -74,6 +73,11 @@ export class ProductsService {
                 mode: 'insensitive',
               },
             },
+            {
+              price: {
+                equals: !isNaN(parseFloat(search)) ? parseFloat(search) : undefined,
+              }
+            }
           ],
         }),
         ...(startDate &&
