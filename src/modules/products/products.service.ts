@@ -77,6 +77,14 @@ export class ProductsService {
               price: {
                 equals: !isNaN(parseFloat(search)) ? parseFloat(search) : undefined,
               }
+            },
+            {
+              brand: {
+                name: {
+                  contains: search,
+                  mode: 'insensitive'
+                },
+              },
             }
           ],
         }),
