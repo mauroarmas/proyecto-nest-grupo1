@@ -2,7 +2,11 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { I18nService } from 'nestjs-i18n';
+import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
+import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
+import { paginate } from 'src/utils/pagination/parsing';
 
 @Injectable()
 export class ProductsService {
@@ -53,10 +57,64 @@ export class ProductsService {
     });
   }
 
-  async findAll() {
-    return this.prisma.product.findMany({
-      include: { categories: true, brand: true },
-    });
+  async findAll(pagination: PaginationArgs) {
+    try {
+      const { search, startDate, endDate, date } = pagination;
+
+      const dateObj = new Date(date);
+
+      const where: Prisma.ProductWhereInput = {
+        isDeleted: false,
+        ...(search && {
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              price: {
+                equals: !isNaN(parseFloat(search)) ? parseFloat(search) : undefined,
+              }
+            },
+            {
+              brand: {
+                name: {
+                  contains: search,
+                  mode: 'insensitive'
+                },
+              },
+            }
+          ],
+        }),
+        ...(startDate &&
+          endDate && {
+          createdAt: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+        }),
+        ...(date && {
+          createdAt: {
+            gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
+            lte: new Date(dateObj.setUTCHours(23, 59, 59, 999)),
+          },
+        }),
+      };
+
+      const baseQuery = {
+        where,
+        ...getPaginationFilter(pagination),
+      };
+
+      const total = await this.prisma.product.count({ where });
+      const products = await this.prisma.product.findMany(baseQuery);
+      const res = paginate(products, total, pagination);
+      return res;
+    } catch (error) {
+      return { error: error.message };
+    }
   }
 
   async findOne(id: string) {
