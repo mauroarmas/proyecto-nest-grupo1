@@ -1,13 +1,24 @@
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Client } from 'node-mailjet';
 import { Email, EmailService } from '../messaging.types';
-import { messagingConfig } from 'src/common/constants';
+import { getMessagingConfig } from 'src/common/constants';
 
+@Injectable()
 export class MailjetService implements EmailService {
   private logger = new Logger(MailjetService.name);
   private client: Client;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
+    const messagingConfig = getMessagingConfig(this.configService);
+    
+    this.logger.debug(`API Key: ${messagingConfig.apiKey}`);
+    this.logger.debug(`Secret: ${messagingConfig.secret}`);
+    
+    if (!messagingConfig.apiKey || !messagingConfig.secret) {
+      throw new Error('Mailjet credentials are not configured properly');
+    }
+
     this.client = new Client({
       apiKey: messagingConfig.apiKey,
       apiSecret: messagingConfig.secret,

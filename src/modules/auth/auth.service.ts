@@ -6,9 +6,10 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'src/common/interfaces';
 import { comparePassword, hashPassword } from 'src/utils/encryption';
 import { MessagingService } from '../messaging/messaging.service';
-import { messagingConfig } from 'src/common/constants';
+import { getMessagingConfig } from 'src/common/constants';
 import { RecoverPasswordDto, ResetPasswordDto } from './dto/auth.dto';
 import { I18nService } from 'nestjs-i18n';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private messagingService: MessagingService,
     private readonly i18n: I18nService,
+    private configService: ConfigService,
   ) {}
 
   async register(user: CreateUserDto) {
@@ -41,6 +43,7 @@ export class AuthService {
         },
       });
 
+      const messagingConfig = getMessagingConfig(this.configService);
       await this.messagingService.sendRegisterUserEmail({
         from: messagingConfig.emailSender,
         to: user.email,
@@ -156,6 +159,7 @@ export class AuthService {
 
       const cleanToken = accessToken.replace('Bearer ', '');
 
+      const messagingConfig = getMessagingConfig(this.configService);
       await this.messagingService.sendRecoveryPassword({
         from: messagingConfig.emailSender,
         to: findUser.email,
