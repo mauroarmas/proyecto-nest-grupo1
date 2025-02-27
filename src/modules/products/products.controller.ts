@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 
 @ApiTags('Products')
 @Controller('products')
@@ -39,8 +40,8 @@ export class ProductsController {
     status: 500,
     description: 'Internal server error',
   })
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query() pagination: PaginationArgs) {
+    return this.productsService.findAll(pagination);
   }
 
   @Get(':id')
