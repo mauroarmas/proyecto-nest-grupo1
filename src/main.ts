@@ -7,9 +7,11 @@ import { ValidationsExceptionFilter } from './common/middlewares';
 import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { I18nValidationPipe } from 'nestjs-i18n';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   
   app.enableCors(corsOptions);
   app.setGlobalPrefix('api/v1');
@@ -19,9 +21,13 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  app.use(bodyParser.json({ limit: '10mb' }));
+  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+  
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
-      excludePrefixes: ['password', 'createdAt', 'updatedAt', 'isDeleted'],
+      excludePrefixes: ['password', 'updatedAt', 'isDeleted'],
       ignoreDecorators: true,
     }),
   );
