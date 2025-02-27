@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 
 @ApiTags('Products')
 @Controller('products')
@@ -10,95 +11,94 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) { }
 
   @Post()
-  @ApiOperation({ summary: 'Crear un nuevo producto' })
+  @ApiOperation({ summary: 'Create a new product' })
   @ApiBody({ type: CreateProductDto })
   @ApiResponse({
     status: 201,
-    description: 'Producto creado exitosamente',
+    description: 'Product created successfully',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos inválidos en la solicitud',
+    description: 'Invalid data in the request',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos los productos' })
+  @ApiOperation({ summary: 'List all products' })
   @ApiBody({ type: CreateProductDto })
   @ApiResponse({
     status: 200,
-    description: 'Lista de productos obtenida exitosamente',
+    description: 'Products found successfully',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query() pagination: PaginationArgs) {
+    return this.productsService.findAll(pagination);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar un producto por ID' })
+  @ApiOperation({ summary: 'Search for a product by ID' })
   @ApiBody({ type: CreateProductDto })
   @ApiResponse({
     status: 200,
-    description: 'Producto encontrado exitosamente',
+    description: 'Product found successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Producto no encontrado',
+    description: 'Product not found',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar un producto' })
+  @ApiOperation({ summary: 'Update a product' })
   @ApiBody({ type: UpdateProductDto })
   @ApiResponse({
     status: 200,
-    description: 'Producto actualizado exitosamente',
+    description: 'Product updated successfully',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos inválidos en la solicitud',
+    description: 'Invalid data in the request',
   })
   @ApiResponse({
     status: 404,
-    description: 'Producto no encontrado',
+    description: 'Product not found',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.update(id, updateProductDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar un producto' })
-  @ApiBody({ type: CreateProductDto })
+  @ApiOperation({ summary: 'Delete a product' })
   @ApiResponse({
     status: 204,
-    description: 'Producto eliminado exitosamente',
+    description: 'Product deleted successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Producto no encontrado',
+    description: 'Product not found',
   })
   @ApiResponse({
     status: 500,
-    description: 'Error interno del servidor',
+    description: 'Internal server error',
   })
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);

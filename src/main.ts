@@ -12,7 +12,6 @@ import * as bodyParser from 'body-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  
   app.enableCors(corsOptions);
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(
@@ -31,18 +30,16 @@ async function bootstrap() {
       ignoreDecorators: true,
     }),
   );
-  app.useGlobalFilters( new ValidationsExceptionFilter());
+  app.useGlobalFilters(new ValidationsExceptionFilter());
 
   app.useGlobalInterceptors(new LoggerInterceptor())
-
-
-  app.useGlobalFilters(new ValidationsExceptionFilter());
 
   const configService = app.get(ConfigService);
 
   const PORT = configService.get<number>('PORT');
   const NODE_ENV = configService.get<string>('NODE_ENV');
 
+  // Revisar
   const config = new DocumentBuilder()
     .setTitle('API NestJs')
     .setDescription('Proyecto final NestJs')
@@ -58,7 +55,7 @@ async function bootstrap() {
       NestApplication.name,
     );
     Logger.log(`Current Environment: ${NODE_ENV}`, NestApplication.name);
-  }); 
+  });
 
 }
 bootstrap();

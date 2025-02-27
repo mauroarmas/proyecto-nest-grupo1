@@ -6,7 +6,6 @@
     "userCreated": "User created successfully",
     "userUpdated": "User updated successfully",
     "userNotFound": "User not found",
-    "existingMail": "The mail is already in use",
     "deletedUser": "User deleted successfully",
     "profileUpdated": "Profile updated successfully",
     "invalidUsers": "You must complete all fields",
@@ -20,12 +19,23 @@
     "passwordUpdated": "Password updated successfully",
     "recoveryEmailSent": "A recovery email has been sent",
     "invalidOrExpiredToken": "The recovery link is invalid or has expired",
-    "product": {
-        "notFound": "Product not found",
-        "categoryNotFound": "One or more categories do not exist"
+    "categoryDuplicated": "A category with that name already exists",
+    "categoryNoFound": "Category not found",
+    "categoryInvalidName": "Invalid category name",
+    "duplicateBrand": "A brand with that name already exists",
+    "brandNotFound": "Brand not found",
+    "ProductNotFound": "Product not found",
+    "invalidNumber": "The value must be a positive number",
+    "supplier": {
+        "created": "Supplier registered successfully",
+        "existingMail": "The mail is already in use",
+        "existingTaxId": "The taxId is already in use",
+        "notFound": "Supplier not found",
+        "updated": "Supplier updated successfully",
+        "noCategories": "The supplier does not have assigned categories"
     },
-    "category": {
-        "notFound": "Category not found",
-        "productNotFound": "One or more products do not exist"
+    "purchase": {
+        "created": "Purchase created successfully",
+        "notSupplier": "The categories of the product {value} do not match those of the selected supplier"
     }
 }

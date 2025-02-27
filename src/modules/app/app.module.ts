@@ -11,7 +11,10 @@ import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { ProductsModule } from '../products/products.module';
 import { CategoriesModule } from '../categories/categories.module';
-
+import { ImgProductsModule } from '../img-products/img-products.module';
+import { CartModule } from '../cart/cart.module';
+import { BrandModule } from '../brand/brand.module';
+import { MessangingModule } from '../messaging/messaging.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -27,9 +30,13 @@ import { CategoriesModule } from '../categories/categories.module';
     AuthModule,
     UsersModule,
     ProductsModule,
-    CategoriesModule
+    CategoriesModule,
+    ImgProductsModule,
+    CartModule,
+    BrandModule,
+    MessangingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

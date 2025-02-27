@@ -36,3 +36,34 @@ export const USERS = [
     }
 
 ]
+
+export const CATEGORIES = [
+    { name: "Indumentaria para niños" },
+    { name: "Indumentaria para mujer" },
+    { name: "Indumentaria para hombres" },
+    { name: "Calzados para damas" },
+    { name: "Calzados para caballeros" },
+    { name: "Ropa deportiva" },
+    { name: "Accesorios de moda" },
+    { name: "Liquidación Ropa de verano para Mujeres" },
+    { name: "Liquidación Ropa de verano para Hombres" },
+    { name: "Ropa formal" },
+    { name: "Ropa de trekking" },
+    { name: "Ropa para bebés" },
+];
+
+export const BRAND = [
+    { name: "Adidas" },
+    { name: "Nike" },
+    { name: "Puma" },
+    { name: "Reebok" },
+    { name: "Converse" },
+    { name: "New Balance" },
+    { name: "Fila" },
+    { name: "Vans" },
+    { name: "Lacoste" },
+    { name: "The North Face" },
+    { name: "Columbia" },
+    { name: "Levis" },
+    { name: "Tommy Hilfiger" },
+];

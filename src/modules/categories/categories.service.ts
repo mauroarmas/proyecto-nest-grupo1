@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -14,18 +14,32 @@ export class CategoriesService {
   async create(createCategoryDto: CreateCategoryDto) {
     const { productIds, name } = createCategoryDto;
 
-    const products = await this.prisma.product.findMany({
-      where: {
-        id: {
-          in: productIds,
-        },
-      },
-    });
+    const existingCategories = await this.prisma.category.findMany();
+    const categoryExists = existingCategories.some(category =>
+      category.name.toLowerCase() === name.toLowerCase()
+    );
 
-    if (productIds.length > 0 && products.length !== productIds.length) {
-      throw new NotFoundException(
-        await this.i18n.translate('category.productNotFound'),
-      );
+    if (categoryExists) {
+      throw new BadRequestException(this.i18n.translate('messages.categoryDuplicated'));
+    }
+
+    const invalidCharacters = /[^a-zA-Z0-9\s]/;
+    if (invalidCharacters.test(name)) {
+      throw new BadRequestException(this.i18n.translate('messages.categoryInvalidName'));
+    }
+
+    if (productIds.length > 0) {
+      const products = await this.prisma.product.findMany({
+        where: {
+          id: {
+            in: productIds,
+          },
+        },
+      });
+
+      if (productIds.length !== products.length) {
+        throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
+      }
     }
 
     const category = await this.prisma.category.create({
@@ -67,9 +81,7 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('category.notFound'),
-      );
+      throw new NotFoundException(this.i18n.translate('messages.categoryNoFound'));
     }
 
     return category;
@@ -83,9 +95,7 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('category.notFound'),
-      );
+      throw new NotFoundException(this.i18n.translate('messages.categoryNoFound'));
     }
 
     if (productIds && productIds.length > 0) {
@@ -98,9 +108,7 @@ export class CategoriesService {
       });
 
       if (products.length !== productIds.length) {
-        throw new NotFoundException(
-          await this.i18n.translate('category.productNotFound'),
-        );
+        throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
       }
 
       await this.prisma.categoryProduct.deleteMany({
@@ -131,10 +139,12 @@ export class CategoriesService {
     });
 
     if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('category.notFound'),
-      );
+      throw new NotFoundException(this.i18n.translate('messages.categoryNoFound'));
     }
+
+    await this.prisma.categoryProduct.deleteMany({
+      where: { categoryId: id },
+    });
 
     return this.prisma.category.delete({
       where: { id },
