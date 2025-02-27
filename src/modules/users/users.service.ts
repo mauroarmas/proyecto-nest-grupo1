@@ -1,3 +1,4 @@
+import { hashPassword } from 'src/utils/encryption';
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -114,6 +115,7 @@ export class UsersService {
       const baseQuery = {
         where,
         ...getPaginationFilter(pagination),
+        include: { profile: true },
       };
       const total = await this.prisma.user.count({ where });
 
@@ -198,25 +200,25 @@ export class UsersService {
       throw new Error(translate(this.i18n, 'messages.userNotFound'));
     }
     const { url, key } = await this.awsService.uploadFile(file, id);
-    await this.prisma.user
-      .update({
-        where: {
-          id,
-        },
+    try {
+      const user = await this.prisma.user.update({
+        where: { id },
         data: { ...updateUserDto, profileImg: url },
-      })
-      .catch(async () => {
-        await this.awsService.deleteFile(key);
-        await this.prisma.user.update({
-          where: {
-            id,
-          },
-          data: { profileImg: null },
-        });
       });
-    return {
-      message: translate(this.i18n, 'messages.profileImg'),
-    };
+
+      return {
+        user,
+        message: translate(this.i18n, 'messages.profileImg'),
+      };
+    } catch (error) {
+      await this.awsService.deleteFile(key);
+      await this.prisma.user.update({
+        where: { id },
+        data: { profileImg: null },
+      });
+
+      throw new Error(translate(this.i18n, 'messages.updateError'));
+    }
   }
 
   async exportAllExcel(res: Response, userId: string) {
@@ -302,8 +304,26 @@ export class UsersService {
       select: { email: true },
     });
 
-    const usersToCreate = users.filter(
-      (user) => !existingEmails.some(({ email }) => email === user.email),
+    const saltRounds = parseInt(process.env.HASH_SALT_ROUND, 10);
+    if (isNaN(saltRounds)) {
+      throw new Error('HASH_SALT_ROUND must be a valid number');
+    }
+
+
+    const usersToCreate = await Promise.all(
+      users
+        .filter(
+          (user) => !existingEmails.some(({ email }) => email === user.email),
+        )
+        .map(async (user) => {
+          const password = String(user.password);
+          if (typeof password !== 'string') {
+            throw new Error('Password must be a string');
+          }
+          return{
+          ...user,
+          password: await bcrypt.hash(password, saltRounds),
+        }}),
     );
 
     if (usersToCreate.length > 0) {
