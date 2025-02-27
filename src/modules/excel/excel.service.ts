@@ -14,7 +14,22 @@ export class ExcelService {
 
     worksheet.columns = columns;
 
-    worksheet.getRow(1).font = { bold: true };
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = {
+      bold: true,
+      color: { argb: 'FFFFFFFF' },
+      name: 'Arial',
+      size: 12,
+    };
+    headerRow.alignment = {
+      horizontal: 'center',
+      vertical: 'middle'
+    };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '3498DB' },
+    };
 
     data.forEach((item) => {
       worksheet.addRow(item);

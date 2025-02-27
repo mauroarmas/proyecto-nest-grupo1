@@ -7,12 +7,15 @@ import { I18nService } from 'nestjs-i18n';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
+import { ExcelService } from '../excel/excel.service';
+import { ExcelColumn } from 'src/common/interfaces';
 
 @Injectable()
 export class ProductsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly excelService: ExcelService
   ) { }
 
   async create(newProduct: CreateProductDto) {
@@ -154,5 +157,38 @@ export class ProductsService {
     }
 
     return this.prisma.product.delete({ where: { id } });
+  }
+
+  async exportAllExcel(res: Response) {
+    const products = await this.prisma.product.findMany({
+      where: { isDeleted: false },
+      include: {
+        brand: true,
+        categories: { include: { category: true } },
+      },
+    });
+
+    const columns: ExcelColumn[] = [
+      { header: 'ID del Producto', key: 'id' },
+      { header: 'Nombre', key: 'name' },
+      { header: 'Precio', key: 'price' },
+      { header: 'Stock', key: 'stock' },
+      { header: 'Marca', key: 'brand' },
+      { header: 'Categorías', key: 'categories' },
+    ];
+
+    const formattedProducts = products.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      stock: product.stock,
+      brand: product.brand?.name || 'N/A',
+      categories: product.categories
+        ?.map((categoryProduct) => categoryProduct.category.name)
+        .join(', ') || 'Sin categoría',
+    }));
+
+    const workbook = await this.excelService.generateExcel(formattedProducts, columns, 'Productos');
+    await this.excelService.exportToResponse(res, workbook, 'products.xlsx');
   }
 }
