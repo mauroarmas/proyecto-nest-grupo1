@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 
 const env = process.env;
 
@@ -7,14 +8,14 @@ export enum RoleEnum {
 }
 
 
-export const messagingConfig = {
-  emailSender: env.EMAIL_SENDER,
-  apiKey: env.MAILJET_API_KEY,
-  secret: env.MAILJET_SECRET_KEY,
+export const getMessagingConfig = (configService: ConfigService) => ({
+  emailSender: configService.get('EMAIL_SENDER'),
+  apiKey: configService.get('MAILJET_API_KEY'),
+  secret: configService.get('MAILJET_SECRET_KEY'),
   resetPasswordUrls: {
-    backoffice: env.BACKOFFICE_RESET_PASSWORD_URL,
+    backoffice: configService.get('BACKOFFICE_RESET_PASSWORD_URL'),
   },
-}
+});
 
 export const awsConfig = {
   client: {

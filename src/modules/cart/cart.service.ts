@@ -3,12 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { MessagingService } from '../messaging/messaging.service';
-import { messagingConfig } from 'src/common/constants'; 
+import { getMessagingConfig } from 'src/common/constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CartService {
     constructor(private readonly prisma: PrismaService, 
-        private readonly messagingService: MessagingService) {}
+        private readonly messagingService: MessagingService,
+        private configService: ConfigService) {}
 
     async createCart(createCartDto: CreateCartDto) {
         const { userId, cartLines } = createCartDto;
@@ -180,6 +182,7 @@ export class CartService {
             await Promise.all(carts.map(async (cart) => {
                 try {
                     if (cart.user?.email) {
+                        const messagingConfig = getMessagingConfig(this.configService);
                         await this.messagingService.sendCartPendingEmail({
                             from: messagingConfig.emailSender,
                             to: cart.user.email,
