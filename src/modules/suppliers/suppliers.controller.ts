@@ -9,8 +9,8 @@ import { RoleEnum } from 'src/common/constants';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-// @UseGuards(JwtAuthGuard, RolesGuard)
-// @Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleEnum.SUPERADMIN)
 @ApiTags('Suppliers')
 @Controller('suppliers')
 export class SuppliersController {

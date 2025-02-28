@@ -1,10 +1,16 @@
-import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { PurchaseService } from './purchase.service';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { ApiBody, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/constants';
 
 @ApiTags('Purchase')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleEnum.SUPERADMIN)
 @Controller('purchase')
 export class PurchaseController {
   constructor(private readonly purchaseService: PurchaseService) { }

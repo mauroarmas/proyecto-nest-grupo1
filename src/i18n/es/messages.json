@@ -26,13 +26,17 @@
     "brandNotFound": "Marca no encontrada",
     "ProductNotFound": "Producto no encontrado",
     "invalidNumber": "El valor debe ser un número positivo",
+    "cartNotFound": "Carrito no encontrado",
+    "saleCreated": "Venta creada con éxito",
+    "saleNotFound": "Venta no encontrada",
     "supplier": {
         "existingMail": "El correo ya está en uso",
         "existingTaxId": "El taxId (CUIT) ya está en uso",
         "created": "Proveedor registrado con éxito",
         "notFound": "Proveedor no encontrado",
         "updated": "Proveedor actualizado con éxito",
-        "noCategories": "El proveedor no posee categorías asignadas"
+        "noCategories": "El proveedor no posee categorías asignadas",
+        "internError": "Error de servidor interno"
     },
     "purchase": {
         "created": "Compra creada con éxito",

@@ -26,13 +26,17 @@
     "brandNotFound": "Brand not found",
     "ProductNotFound": "Product not found",
     "invalidNumber": "The value must be a positive number",
+    "cartNotFound": "Cart not found",
+    "saleCreated": "Sale created successfully",
+    "saleNotFound": "Sale not found",
     "supplier": {
         "created": "Supplier registered successfully",
         "existingMail": "The mail is already in use",
         "existingTaxId": "The taxId is already in use",
         "notFound": "Supplier not found",
         "updated": "Supplier updated successfully",
-        "noCategories": "The supplier does not have assigned categories"
+        "noCategories": "The supplier does not have assigned categories",
+        "internError": "Internal server error"
     },
     "purchase": {
         "created": "Purchase created successfully",
