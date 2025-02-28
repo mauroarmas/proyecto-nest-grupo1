@@ -111,11 +111,11 @@ export class ProductsController {
     return this.productsService.exportAllExcel(res);
   }
 
-  // @ApiOperation({ summary: 'Upload products from Excel' }) 
-  // @Post('upload/excel')
-  // @UseInterceptors(FileInterceptor('file'))
-  // async uploadExcel(@UploadedFile() file: Express.Multer.File) { 
-  //   const data = await this.productsService.uploadExcel(file);
-  //   return { message: 'Productos cargados exitosamente', data };
-  // }
+  @ApiOperation({ summary: 'Upload products from Excel' }) 
+  @Post('upload/excel')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadExcel(@UploadedFile() file: Express.Multer.File) { 
+    const data = await this.productsService.uploadExcel(file);
+    return { message: 'Productos cargados exitosamente', data };
+  }
 }

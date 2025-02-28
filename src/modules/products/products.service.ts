@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Gender, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { I18nService } from 'nestjs-i18n';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
@@ -192,82 +192,78 @@ export class ProductsService {
     await this.excelService.exportToResponse(res, workbook, 'products.xlsx');
   }
 
-  // async uploadExcel(file: Express.Multer.File) {
-  //   const buffer = file.buffer;
-  //   const products = await this.excelService.readExcel(buffer);
-  
-  //   const processedProducts = [];
-  
-  //   // Obtener las marcas válidas y sus IDs
-  //   const validBrands = await this.prisma.brand.findMany({
-  //     select: { name: true, id: true },
-  //   });
-  //   const validBrandNames = validBrands.map((brand) => brand.name);
-  //   const validBrandIds = new Map(validBrands.map((brand) => [brand.name, brand.id]));
-  
-  //   // Obtener las categorías válidas
-  //   const allCategories = await this.prisma.category.findMany({
-  //     select: { name: true, id: true },
-  //   });
-  //   const allCategoryNames = allCategories.map((category) => category.name);
-  
-  //   for (const product of products) {
-  //     const { Name, Price, Stock, Brand, Categories } = product;
-  
-  //     // Validación de marca
-  //     if (!validBrandNames.includes(Brand)) {
-  //       throw new Error(`Marca "${Brand}" no válida.`);
-  //     }
-  
-  //     // Validación de categorías y creación de las conexiones
-  //     const categoryConnections = [];
-  //     for (const categoryName of Categories) {
-  //       if (!allCategoryNames.includes(categoryName)) {
-  //         throw new Error(`Categoría no encontrada: ${categoryName}`);
-  //       }
-  //       const category = await this.prisma.category.findFirst({
-  //         where: { name: categoryName },
-  //       });
-  //       if (category) {
-  //         categoryConnections.push(category);
-  //       }
-  //     }
-  
-  //     // Buscar si el producto ya existe
-  //     let existingProduct = await this.prisma.product.findFirst({
-  //       where: { name: Name },
-  //     });
-  
-  //     // Si el producto existe, actualizamos el stock
-  //     if (existingProduct) {
-  //       existingProduct = await this.prisma.product.update({
-  //         where: { id: existingProduct.id },
-  //         data: {
-  //           stock: existingProduct.stock + Stock,
-  //         },
-  //       });
-  //       processedProducts.push(existingProduct);
-  //     } else {
-  //       // Si el producto no existe, lo creamos
-  //       const brandId = validBrandIds.get(Brand);
-  
-  //       const newProduct = await this.prisma.product.create({
-  //         data: {
-  //           name: Name,
-  //           price: Price,
-  //           stock: Stock,
-  //           brandId: brandId,
-  //           gender: Gender.UNISEX, // Asumimos un valor predeterminado de género
-  //           categories: {
-  //             connect: categoryConnections.map((category) => ({ id: category.id })),
-  //           },
-  //         },
-  //       });
-  
-  //       processedProducts.push(newProduct);
-  //     }
-  //   }
-  
-  //   return processedProducts;
-  // }  
+  async ensureCategoryWithSupplier(categoryName: string, supplierId: string) {
+    let category = await this.prisma.category.findFirst({
+      where: { name: categoryName, isDeleted: false },
+    });
+
+    if (!category) {
+      category = await this.prisma.category.create({
+        data: {
+          name: categoryName,
+          suppliers: {
+            create: [{ supplierId }],
+          },
+        },
+      });
+    } else {
+      await this.prisma.categorySupplier.upsert({
+        where: { categoryId_supplierId: { categoryId: category.id, supplierId } },
+        update: {},
+        create: { categoryId: category.id, supplierId },
+      });
+    }
+
+    return category;
+  }
+
+  async uploadExcel(file: Express.Multer.File) {
+
+    const products = await this.excelService.readExcel(file.buffer);
+
+    for (const element of products) {
+      const { name, price, stock, brand, categories, supplier } = element;
+
+      if (price <= 0 || stock <= 0) {
+        throw new ConflictException(this.i18n.translate('messages.invalidNumber'));
+      }
+
+      const existingProduct = await this.prisma.product.findFirst({ where: { name } });
+
+      if (!existingProduct) {
+        let brandData = await this.prisma.brand.findFirst({ where: { name: brand } });
+
+        if (!brandData) {
+          brandData = await this.prisma.brand.create({
+            data: { name: brand },
+          });
+        }
+
+        let supplierData = await this.prisma.supplier.findFirst({ where: { taxId: supplier.toString() } });
+
+        const categoriesArray = categories ? categories.split(',') || [] : [];
+
+        const categoryRecords = await Promise.all(
+          categoriesArray.map((categoryName) =>
+            this.ensureCategoryWithSupplier(categoryName, supplierData.id || '')
+          )
+        );
+
+        await this.prisma.product.create({
+          data: {
+            name,
+            price,
+            stock,
+            brandId: brandData.id,
+            gender: "UNISEX",
+            categories: {
+              create: categoryRecords.map((category) => ({
+                categoryId: category.id,
+              })),
+            },
+          },
+        });
+      }
+    }
+  }
 }

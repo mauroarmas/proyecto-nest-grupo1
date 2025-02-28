@@ -65,7 +65,7 @@ export class ExcelService {
 
     const headers: string[] = [];
     worksheet.getRow(1).eachCell((cell) => {
-      headers.push(cell.value?.toString() || '');
+      headers.push(cell.value?.toString().toLowerCase() || '');
     });
 
     const data: any[] = [];
