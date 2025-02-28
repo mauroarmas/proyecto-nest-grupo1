@@ -191,4 +191,79 @@ export class ProductsService {
     const workbook = await this.excelService.generateExcel(formattedProducts, columns, 'Productos');
     await this.excelService.exportToResponse(res, workbook, 'products.xlsx');
   }
+
+  async ensureCategoryWithSupplier(categoryName: string, supplierId: string) {
+    let category = await this.prisma.category.findFirst({
+      where: { name: categoryName, isDeleted: false },
+    });
+
+    if (!category) {
+      category = await this.prisma.category.create({
+        data: {
+          name: categoryName,
+          suppliers: {
+            create: [{ supplierId }],
+          },
+        },
+      });
+    } else {
+      await this.prisma.categorySupplier.upsert({
+        where: { categoryId_supplierId: { categoryId: category.id, supplierId } },
+        update: {},
+        create: { categoryId: category.id, supplierId },
+      });
+    }
+
+    return category;
+  }
+
+  async uploadExcel(file: Express.Multer.File) {
+
+    const products = await this.excelService.readExcel(file.buffer);
+
+    for (const element of products) {
+      const { name, price, stock, brand, categories, supplier } = element;
+
+      if (price <= 0 || stock <= 0) {
+        throw new ConflictException(this.i18n.translate('messages.invalidNumber'));
+      }
+
+      const existingProduct = await this.prisma.product.findFirst({ where: { name } });
+
+      if (!existingProduct) {
+        let brandData = await this.prisma.brand.findFirst({ where: { name: brand } });
+
+        if (!brandData) {
+          brandData = await this.prisma.brand.create({
+            data: { name: brand },
+          });
+        }
+
+        let supplierData = await this.prisma.supplier.findFirst({ where: { taxId: supplier.toString() } });
+
+        const categoriesArray = categories ? categories.split(',') || [] : [];
+
+        const categoryRecords = await Promise.all(
+          categoriesArray.map((categoryName) =>
+            this.ensureCategoryWithSupplier(categoryName, supplierData.id || '')
+          )
+        );
+
+        await this.prisma.product.create({
+          data: {
+            name,
+            price,
+            stock,
+            brandId: brandData.id,
+            gender: "UNISEX",
+            categories: {
+              create: categoryRecords.map((category) => ({
+                categoryId: category.id,
+              })),
+            },
+          },
+        });
+      }
+    }
+  }
 }

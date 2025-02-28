@@ -11,5 +11,7 @@
     "maxValue": "{property} no puede ser mayor a {value}",
     "isUUID": "{property} debe ser un UUID válido",
     "isNumber": "{property} debe ser un número válido",
-    "isOptional": "{property} es opcional"
+    "isOptional": "{property} es opcional",
+    "isPhoneNumber": "El número de teléfono debe ser válido",
+    "isArray": "{property} debe ser un arreglo"
 }
