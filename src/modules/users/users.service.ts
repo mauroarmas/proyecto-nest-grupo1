@@ -1,5 +1,4 @@
-import { hashPassword } from 'src/utils/encryption';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -24,12 +23,21 @@ export class UsersService {
   ) {}
   async create(newUser: CreateUserDto) {
     try {
+      const nameRegex = /^[a-zA-Z\s]+$/;
+      if (!nameRegex.test(newUser.name)) {
+        throw new BadRequestException(translate(this.i18n, 'messages.invalidName'));
+      }
+      if (!nameRegex.test(newUser.lastName)) {
+        throw new BadRequestException(translate(this.i18n, 'messages.invalidLastName'));
+      }
+
       const findEmail = await this.prisma.user.findUnique({
         where: { email: newUser.email },
       });
       if (findEmail) {
-        throw new Error(translate(this.i18n, 'messages.existingMail'));
+        throw new BadRequestException(translate(this.i18n, 'messages.existingMail'));
       }
+
       const user = await this.prisma.user.create({
         data: {
           ...newUser,
@@ -55,7 +63,7 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+        throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
       const user = await this.prisma.user.update({
         where: { id },
@@ -135,7 +143,7 @@ export class UsersService {
         include: { profile: true },
       });
       if (!user) {
-        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+        throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
       return user;
     } catch (error) {
@@ -147,7 +155,7 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+        throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
       const user = await this.prisma.user.update({
         where: { id },
@@ -163,7 +171,7 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+        throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
       const deletedUser = await this.prisma.user.update({
         where: { id },
@@ -188,16 +196,16 @@ export class UsersService {
 
     const fileExtension = file.originalname.split('.').pop().toLowerCase();
     if (!validExtensions.includes(fileExtension)) {
-      throw new Error(translate(this.i18n, 'messages.invalidFileExtension'));
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidFileExtension'));
     }
 
     if (file.size > maxFileSize) {
-      throw new Error(translate(this.i18n, 'messages.fileTooLarge'));
+      throw new BadRequestException(translate(this.i18n, 'messages.fileTooLarge'));
     }
 
     const findUser = await this.prisma.user.findUnique({ where: { id } });
     if (!findUser) {
-      throw new Error(translate(this.i18n, 'messages.userNotFound'));
+      throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
     }
     const { url, key } = await this.awsService.uploadFile(file, id);
     try {
@@ -217,7 +225,7 @@ export class UsersService {
         data: { profileImg: null },
       });
 
-      throw new Error(translate(this.i18n, 'messages.updateError'));
+      throw new BadRequestException(translate(this.i18n, 'messages.updateError'));
     }
   }
 
@@ -273,7 +281,7 @@ export class UsersService {
 
     const fileExtension = fileName.split('.').pop().toLowerCase();
     if (!validExtensions.includes(fileExtension)) {
-      throw new Error(translate(this.i18n, 'messages.invalidFileExtension'));
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidFileExtension'));
     }
 
     const users = await this.excelService.readExcel(buffer);
@@ -306,7 +314,7 @@ export class UsersService {
 
     const saltRounds = parseInt(process.env.HASH_SALT_ROUND, 10);
     if (isNaN(saltRounds)) {
-      throw new Error('HASH_SALT_ROUND must be a valid number');
+      throw new BadRequestException('HASH_SALT_ROUND must be a valid number');
     }
 
 
@@ -318,7 +326,7 @@ export class UsersService {
         .map(async (user) => {
           const password = String(user.password);
           if (typeof password !== 'string') {
-            throw new Error('Password must be a string');
+            throw new BadRequestException('Password must be a string');
           }
           return{
           ...user,

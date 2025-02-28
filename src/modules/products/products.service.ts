@@ -1,3 +1,4 @@
+import { ProductImage } from './../../../node_modules/.prisma/client/index.d';
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -54,6 +55,7 @@ export class ProductsService {
         brandId,
         categories: { create: categoryIds.map(id => ({ categoryId: id })) },
       },
+      include: { images: true },
     });
   }
 
@@ -120,7 +122,7 @@ export class ProductsService {
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { categories: true, brand: true },
+      include: { categories: true, brand: true, images: true },
     });
 
     if (!product) {

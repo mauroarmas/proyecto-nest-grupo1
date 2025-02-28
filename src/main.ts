@@ -8,6 +8,7 @@ import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { I18nValidationPipe } from 'nestjs-i18n';
 import * as bodyParser from 'body-parser';
+import { MulterExceptionFilter } from './common/filters/multer-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +31,8 @@ async function bootstrap() {
       ignoreDecorators: true,
     }),
   );
+  app.useGlobalFilters(new MulterExceptionFilter());
+
   app.useGlobalFilters(new ValidationsExceptionFilter());
 
   app.useGlobalInterceptors(new LoggerInterceptor())
