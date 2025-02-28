@@ -1,28 +1,81 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
 import { PurchaseService } from './purchase.service';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
+import { ApiBody, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 
+@ApiTags('Purchase')
 @Controller('purchase')
 export class PurchaseController {
-  constructor(private readonly purchaseService: PurchaseService) {}
+  constructor(private readonly purchaseService: PurchaseService) { }
 
   @Post()
+  @ApiOperation({ summary: 'Create a new purchase' })
+  @ApiBody({ type: CreatePurchaseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Purchase created successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid data in the request',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   create(@Body() createPurchaseDto: CreatePurchaseDto) {
     return this.purchaseService.create(createPurchaseDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'List all purchase' })
+  @ApiBody({ type: CreatePurchaseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Purchase found successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   findAll(@Query() pagination: PaginationArgs) {
     return this.purchaseService.findAll(pagination);
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Search for a purchase by ID' })
+  @ApiBody({ type: CreatePurchaseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Purchase found successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Purchase not found',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   findOne(@Param('id') id: string) {
     return this.purchaseService.findOne(id);
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a purchase by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Purchase deleted successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Purchase not found',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   remove(@Param('id') id: string) {
     return this.purchaseService.remove(id);
   }
