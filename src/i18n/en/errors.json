@@ -1,0 +1,14 @@
+{
+    "isNotEmpty": "{property}: The field is required",
+    "isString": "{property} must be a string",
+    "isEmail": "The field must be a valid email",
+    "minLength": "The field must be at least {value} characters",
+    "maxLength": "The field must not exceed {value} characters",
+    "minLengthPhone": "The phone number must have at least {value} digits",
+    "maxLengthPhone": "The phone number must not exceed {value} digits",
+    "isPositive": "{property} must be a positive number",
+    "minValue": "{property} cannot be less than {value}",
+    "maxValue": "{property} cannot be greater than {value}",
+    "isUUID": "{property} must be a valid UUID",
+    "isNumber": "{property} must be a valid number"
+}
