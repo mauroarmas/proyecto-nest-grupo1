@@ -36,10 +36,9 @@ export class PurchaseController {
 
   @Get()
   @ApiOperation({ summary: 'List all purchase' })
-  @ApiBody({ type: CreatePurchaseDto })
   @ApiResponse({
     status: 200,
-    description: 'Purchase found successfully',
+    description: 'Purchases found successfully',
   })
   @ApiResponse({
     status: 500,
@@ -51,7 +50,6 @@ export class PurchaseController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Search for a purchase by ID' })
-  @ApiBody({ type: CreatePurchaseDto })
   @ApiResponse({
     status: 200,
     description: 'Purchase found successfully',

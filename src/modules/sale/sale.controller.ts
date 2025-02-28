@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Res,
 } from '@nestjs/common';
 import { SaleService } from './sale.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
@@ -30,7 +31,7 @@ export class SaleController {
   @ApiBody({ type: CreateSaleDto })
   @ApiResponse({
     status: 201,
-    description: 'Product created successfully',
+    description: 'Sale created successfully',
   })
   @ApiResponse({
     status: 400,
@@ -46,6 +47,14 @@ export class SaleController {
 
   @Roles(RoleEnum.SUPERADMIN)
   @Get()
+  @ApiResponse({
+    status: 200,
+    description: 'Sales found successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   @ApiOperation({ summary: 'Find all sales' })
   findAll(@Query() pagination: PaginationArgs) {
     return this.saleService.findAll(pagination);
@@ -53,15 +62,55 @@ export class SaleController {
 
   @Roles(RoleEnum.SUPERADMIN)
   @Get(':id')
-  @ApiOperation({ summary: 'Find a specific sale' })
+  @ApiOperation({ summary: 'Search for a sale by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sale found successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Sale not found',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   findOne(@Param('id') id: string) {
     return this.saleService.findOne(id);
   }
 
-  @Roles(RoleEnum.SUPERADMIN)
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @Get('/user/:id')
   @ApiOperation({ summary: 'Find all sales by an user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sales found successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   findAllByUser(@Param('id') id: string) {
     return this.saleService.findAllByUser(id);
   }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @Get('/export/excel')
+  @ApiOperation({ summary: 'Find all sales excel' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sales found successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  findAllExcel(@Res() res: Response) {
+    return this.saleService.findAllExcel(res);
+  }
+
 }

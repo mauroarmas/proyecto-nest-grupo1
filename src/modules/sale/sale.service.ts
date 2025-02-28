@@ -6,12 +6,15 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { Prisma } from '@prisma/client';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
+import { ExcelService } from '../excel/excel.service';
+import { ExcelColumn } from 'src/common/interfaces';
 
 @Injectable()
 export class SaleService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly excelService: ExcelService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto) {
@@ -122,14 +125,13 @@ export class SaleService {
   }
 
   async findOne(id: string) {
-    try{
-
+    try {
       const sale = await this.prisma.sale.findUnique({
         where: { id },
         include: { cart: true },
       });
 
-      if(!sale){
+      if (!sale) {
         throw new HttpException(
           await this.i18n.translate('messages.saleNotFound'),
           HttpStatus.NOT_FOUND,
@@ -137,8 +139,7 @@ export class SaleService {
       }
 
       return sale;
-
-    }catch(error){
+    } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -152,5 +153,82 @@ export class SaleService {
     }
   }
 
-  findAllByUser(userId: string) {}
+  async findAllByUser(userId: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new HttpException(
+          await this.i18n.translate('messages.userNotFound'),
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return this.prisma.sale.findMany({
+        where: {
+          cart: {
+            userId,
+          },
+        },
+        include: { cart: true },
+      });
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findAllExcel(res: Response) {
+    try {
+      const sales = await this.prisma.sale.findMany({
+        where: { isDeleted: false },
+        include: { cart: true },
+      });
+
+      const columns: ExcelColumn[] = [
+        { header: 'Venta', key: 'id' },
+        { header: 'Usuario', key: 'user' },
+        { header: 'Carrito', key: 'cartId' },
+        { header: 'Total', key: 'total' },
+        { header: 'Fecha', key: 'createdAt' },
+      ];
+
+      const formattedSales = sales.map(sale => ({
+        id: sale.id,
+        user: sale.cart.userId,
+        cartId: sale.cartId,
+        total: sale.cart.total,
+        createdAt: sale.createdAt,
+
+      }));
+
+      const workbook = await this.excelService.generateExcel(
+        formattedSales,
+        columns,
+        'Ventas',
+      );
+      await this.excelService.exportToResponse(res, workbook, 'sales.xlsx');
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
