@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
@@ -14,7 +25,7 @@ import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 @ApiTags('Suppliers')
 @Controller('suppliers')
 export class SuppliersController {
-  constructor(private readonly suppliersService: SuppliersService) { }
+  constructor(private readonly suppliersService: SuppliersService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new supplier' })
@@ -84,7 +95,10 @@ export class SuppliersController {
     status: 500,
     description: 'Internal server error',
   })
-  async update(@Param('id') id: string, @Body() updateSupplierDto: UpdateSupplierDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateSupplierDto: UpdateSupplierDto,
+  ) {
     return await this.suppliersService.update(id, updateSupplierDto);
   }
 
@@ -104,5 +118,20 @@ export class SuppliersController {
   })
   remove(@Param('id') id: string) {
     return this.suppliersService.remove(id);
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @Get('/export/excel')
+  @ApiOperation({ summary: 'Find all suppliers excel' })
+  @ApiResponse({
+    status: 200,
+    description: 'Suppliers found successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  findAllExcel(@Res() res: Response) {
+    return this.suppliersService.findAllExcel(res);
   }
 }

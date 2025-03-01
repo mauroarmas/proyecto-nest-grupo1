@@ -8,12 +8,15 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { Prisma } from '@prisma/client';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
+import { ExcelService } from '../excel/excel.service';
+import { ExcelColumn } from 'src/common/interfaces';
 
 @Injectable()
 export class SuppliersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly excelService: ExcelService,
   ) {}
 
   async create(createSupplierDto: CreateSupplierDto) {
@@ -232,6 +235,54 @@ export class SuppliersService {
 
   remove(id: string) {
     return this.prisma.supplier.delete({ where: { id } });
+  }
+
+  async findAllExcel(res: Response) {
+    try {
+      const suppliers = await this.prisma.supplier.findMany({
+        where: { isDeleted: false },
+        include: { categories: true },
+      });
+
+      const categoriesNames = [];
+      for(const supplier of suppliers) {
+        const categories = await this.prisma.category.findMany({
+          where: { id: { in: supplier.categories.map((cat) => cat.categoryId) } },
+          select: { name: true },
+        })
+
+        categoriesNames.push(categories.map((cat) => cat.name).join(', '));
+
+      }
+
+      const data = suppliers.map((supplier, index) => ({
+        id: supplier.id,
+        name: supplier.name,
+        email: supplier.email,
+        taxId: supplier.taxId,
+        phone: supplier.phone,
+        categories: categoriesNames[index],
+      }));
+
+
+      const columns: ExcelColumn[] = [
+        { header: 'Id', key: 'id' },
+        { header: 'CUIT', key: 'taxId' },
+        { header: 'Nombre', key: 'name' },
+        { header: 'Email', key: 'email' },
+        { header: 'Telefono', key: 'phone' },
+        { header: 'Categorias', key: 'categories' },
+      ];
+
+      const workbook = await this.excelService.generateExcel(
+        data,
+        columns,
+        'Proveedores',
+      );
+      await this.excelService.exportToResponse(res, workbook, 'suppliers.xlsx');
+    } catch (error) {
+      return { error: error.message };
+    }
   }
 
   private async validateAndFormatCategories(categoryIds: string[]) {
