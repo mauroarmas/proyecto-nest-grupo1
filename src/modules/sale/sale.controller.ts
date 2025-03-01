@@ -8,6 +8,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { SaleService } from './sale.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -109,6 +110,25 @@ export class SaleController {
   })
   findAllExcel(@Res() res: Response) {
     return this.saleService.findAllExcel(res);
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @Get('pdf/:id')
+  @ApiOperation({ summary: 'Generate a PDF of a sale' })
+  @ApiResponse({
+    status: 200,
+    description: 'PDF generated successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Sale not found',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  generatePDF(@Param('id') id: string, @Res() res: Response) {
+    return this.saleService.getBill(id, res);
   }
 
 }

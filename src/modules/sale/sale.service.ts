@@ -8,6 +8,9 @@ import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
 import { ExcelService } from '../excel/excel.service';
 import { ExcelColumn } from 'src/common/interfaces';
+import { Response } from 'express';
+import { PrinterService } from '../printer/printer.service';
+import { generateBillPDF } from '../printer/documents/index';
 
 @Injectable()
 export class SaleService {
@@ -15,6 +18,7 @@ export class SaleService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
     private readonly excelService: ExcelService,
+    private readonly printerService: PrinterService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto) {
@@ -49,10 +53,20 @@ export class SaleService {
         include: { cart: true },
       });
 
+      //GENERACION PDF
+      const docDefinition = await generateBillPDF(sale, cart);
+      const pdfDoc = await this.printerService.createPdf(docDefinition);
+
       return {
         message: await this.i18n.translate('messages.saleCreated'),
         sale,
+        pdf: pdfDoc, // Devuelve el PDF
       };
+
+      // return {
+      //   message: await this.i18n.translate('messages.saleCreated'),
+      //   sale,
+      // };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -203,13 +217,12 @@ export class SaleService {
         { header: 'Fecha', key: 'createdAt' },
       ];
 
-      const formattedSales = sales.map(sale => ({
+      const formattedSales = sales.map((sale) => ({
         id: sale.id,
         user: sale.cart.userId,
         cartId: sale.cartId,
         total: sale.cart.total,
         createdAt: sale.createdAt,
-
       }));
 
       const workbook = await this.excelService.generateExcel(
@@ -231,4 +244,26 @@ export class SaleService {
       );
     }
   }
+
+  
+async getBill(saleId: string, res: Response) {
+  const sale = await this.prisma.sale.findUnique({
+    where: { id: saleId },
+    include: { cart: { include: { cartLines: { include: { product: true } }, user: true } } },
+  });
+
+  if (!sale) {
+    throw new HttpException('Venta no encontrada', HttpStatus.NOT_FOUND);
+  }
+
+  const docDefinition = await generateBillPDF(sale, sale.cart);
+  const pdfDoc = await this.printerService.createPdf(docDefinition);
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="factura-${sale.id}.pdf"`);
+  pdfDoc.pipe(res);
+  pdfDoc.end();
+}
+
+
 }
