@@ -21,57 +21,38 @@ export class SaleService {
     private readonly printerService: PrinterService,
   ) {}
 
-  async create(createSaleDto: CreateSaleDto) {
+  async create(createSaleDto: CreateSaleDto, res: Response) {
     try {
       const cart = await this.prisma.cart.findUnique({
         where: { id: createSaleDto.cartId },
       });
-
+  
       if (!cart) {
         throw new HttpException(
           await this.i18n.translate('messages.cartNotFound'),
           HttpStatus.BAD_REQUEST,
         );
       }
-
+  
       await this.prisma.cart.update({
         where: { id: cart.id },
-        data: {
-          status: 'completed',
-        },
+        data: { status: 'completed' },
       });
-
+  
       const sale = await this.prisma.sale.create({
         data: {
-          cart: {
-            connect: {
-              id: cart.id,
-            },
-          },
+          cart: { connect: { id: cart.id } },
           date: new Date(Date.now()),
         },
         include: { cart: true },
       });
-
-      //GENERACION PDF
-      const docDefinition = await generateBillPDF(sale, cart);
-      const pdfDoc = await this.printerService.createPdf(docDefinition);
-
-      return {
-        message: await this.i18n.translate('messages.saleCreated'),
-        sale,
-        pdf: pdfDoc, // Devuelve el PDF
-      };
-
-      // return {
-      //   message: await this.i18n.translate('messages.saleCreated'),
-      //   sale,
-      // };
+  
+      // Llamar a getBill para generar y enviar el PDF como respuesta
+      return await this.getBill(sale.id, res);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-
       throw new HttpException(
         await this.i18n.translate('messages.serverError', {
           args: { error: error.message },
@@ -80,6 +61,7 @@ export class SaleService {
       );
     }
   }
+  
 
   async findAll(pagination: PaginationArgs) {
     try {
@@ -245,25 +227,29 @@ export class SaleService {
     }
   }
 
-  
-async getBill(saleId: string, res: Response) {
-  const sale = await this.prisma.sale.findUnique({
-    where: { id: saleId },
-    include: { cart: { include: { cartLines: { include: { product: true } }, user: true } } },
-  });
+  async getBill(saleId: string, res: Response) {
+    const sale = await this.prisma.sale.findUnique({
+      where: { id: saleId },
+      include: {
+        cart: {
+          include: { cartLines: { include: { product: true } }, user: true },
+        },
+      },
+    });
 
-  if (!sale) {
-    throw new HttpException('Venta no encontrada', HttpStatus.NOT_FOUND);
+    if (!sale) {
+      throw new HttpException('Venta no encontrada', HttpStatus.NOT_FOUND);
+    }
+
+    const docDefinition = await generateBillPDF(sale, sale.cart);
+    const pdfDoc = await this.printerService.createPdf(docDefinition);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="factura-${sale.id}.pdf"`,
+    );
+    pdfDoc.pipe(res);
+    pdfDoc.end();
   }
-
-  const docDefinition = await generateBillPDF(sale, sale.cart);
-  const pdfDoc = await this.printerService.createPdf(docDefinition);
-
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="factura-${sale.id}.pdf"`);
-  pdfDoc.pipe(res);
-  pdfDoc.end();
-}
-
-
 }

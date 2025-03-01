@@ -28,21 +28,13 @@ export class SaleController {
   @Post()
   @ApiOperation({ summary: 'Create a new sale' })
   @ApiBody({ type: CreateSaleDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Sale created successfully',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Cart not found',
-  })
-  @ApiResponse({
-    status: 500,
-    description: 'Internal server error',
-  })
-  create(@Body() createSaleDto: CreateSaleDto) {
-    return this.saleService.create(createSaleDto);
+  @ApiResponse({ status: 201, description: 'Sale created successfully' })
+  @ApiResponse({ status: 400, description: 'Cart not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  create(@Body() createSaleDto: CreateSaleDto, @Res() res: Response) {
+    return this.saleService.create(createSaleDto, res);
   }
+  
 
   @Roles(RoleEnum.SUPERADMIN)
   @Get()
