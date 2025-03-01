@@ -9,6 +9,8 @@ import {
   UseGuards,
   Query,
   Res,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
@@ -19,6 +21,8 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/common/constants';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(RoleEnum.SUPERADMIN)
@@ -133,5 +137,22 @@ export class SuppliersController {
   })
   findAllExcel(@Res() res: Response) {
     return this.suppliersService.findAllExcel(res);
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @Post('/upload/excel')
+  @ApiOperation({ summary: 'Import suppliers in a excel file' })
+  @ApiResponse({
+    status: 200,
+    description: 'Suppliers loaded successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadExcel(@UploadedFile() file: Express.Multer.File) {
+    const data = await this.suppliersService.uploadExcel(file);
+    return { message: 'Suppliers loaded successfully', data };
   }
 }
