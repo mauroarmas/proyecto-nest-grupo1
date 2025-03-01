@@ -68,4 +68,28 @@ export class ImgProductsService {
       throw new BadRequestException('Error uploading file', error);
     }
   }
+
+  async remove(imageId: string) {
+    try {
+      const image = await this.prisma.productImage.findUnique({
+        where: { id: imageId },
+        include: { product: true },
+      });
+  
+      if (!image) {
+        throw new NotFoundException(translate(this.i18n, 'messages.ImageNotFound'));
+      }
+  
+      await this.prisma.productImage.delete({
+        where: { id: imageId },
+      });
+  
+      return { message: "Image deleted successfully" };
+  
+    } catch (error) {
+      console.error("Error removing image:", error);
+      throw new BadRequestException("Error removing image");
+    }
+  }
+  
 }

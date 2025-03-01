@@ -7,6 +7,8 @@ import {
   UploadedFiles,
   UseFilters,
   BadRequestException,
+  Delete,
+  Req,
 } from '@nestjs/common';
 import { ImgProductsService } from './img-products.service';
 import { CreateImgProductDto } from './dto/create-img-product.dto';
@@ -30,5 +32,10 @@ export class ImgProductsController {
       files,
       productId,
     );
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') imageId: string) {
+    return await this.imgProductsService.remove(imageId);
   }
 }

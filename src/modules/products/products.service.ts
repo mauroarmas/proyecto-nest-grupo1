@@ -108,6 +108,9 @@ export class ProductsService {
       const baseQuery = {
         where,
         ...getPaginationFilter(pagination),
+        include: {
+          images: true,
+        },
       };
 
       const total = await this.prisma.product.count({ where });
