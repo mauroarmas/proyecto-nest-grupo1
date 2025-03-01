@@ -19,7 +19,7 @@
     "passwordUpdated": "Contraseña actualizada correctamente",
     "recoveryEmailSent": "Se ha enviado un correo de recuperación",
     "invalidOrExpiredToken": "El enlace de recuperación es inválido o ha expirado",
-    "categoryDuplicated": "Ya existe una categoría con ese nombre",
+    "categoryDuplicated": "Hay una o más categorias duplicadas",
     "categoryNoFound": "Categoría no encontrada",
     "categoryInvalidName": "Nombre de la categoría inválido",
     "duplicateBrand": "Ya existe una marca con ese nombre",

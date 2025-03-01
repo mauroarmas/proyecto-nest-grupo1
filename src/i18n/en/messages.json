@@ -19,7 +19,7 @@
     "passwordUpdated": "Password updated successfully",
     "recoveryEmailSent": "A recovery email has been sent",
     "invalidOrExpiredToken": "The recovery link is invalid or has expired",
-    "categoryDuplicated": "A category with that name already exists",
+    "categoryDuplicated": "There are one or more duplicated categories",
     "categoryNoFound": "Category not found",
     "categoryInvalidName": "Invalid category name",
     "duplicateBrand": "A brand with that name already exists",
@@ -35,8 +35,7 @@
         "existingTaxId": "The taxId is already in use",
         "notFound": "Supplier not found",
         "updated": "Supplier updated successfully",
-        "noCategories": "The supplier does not have assigned categories",
-        "internError": "Internal server error"
+        "noCategories": "The supplier does not have assigned categories"
     },
     "purchase": {
         "created": "Purchase created successfully",

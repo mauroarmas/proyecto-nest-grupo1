@@ -43,18 +43,18 @@ export class SuppliersService {
       }
 
       const categories = await this.validateAndFormatCategories(
-        createSupplierDto.categories?.map((cat) => cat.categoryId) || [],
+        createSupplierDto.categories || []
       );
-
+    
+      console.log('categories', categories);
+      
       const supplier = await this.prisma.supplier.create({
         data: {
           ...createSupplierDto,
-          categories: {
-            create: categories,
-          },
+          categories: { create: categories.map(category => ({ category: { connect: { id: category.id } } })) },
         },
-        include: { categories: true },
       });
+      
 
       return {
         message: translate(this.i18n, 'messages.supplier.created'),
@@ -66,7 +66,9 @@ export class SuppliersService {
       }
 
       throw new HttpException(
-        await this.i18n.translate('messages.supplier.internError'),
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -133,7 +135,9 @@ export class SuppliersService {
       }
 
       throw new HttpException(
-        await this.i18n.translate('messages.supplier.internError'),
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -150,7 +154,16 @@ export class SuppliersService {
         ? supplier
         : { error: translate(this.i18n, 'messages.supplier.notFound') };
     } catch (error) {
-      return { error: error.message };
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -193,20 +206,38 @@ export class SuppliersService {
         }
       }
 
-      if (updateSupplierDto.categories) {
-        const categoryIds = updateSupplierDto.categories.map(
-          (cat) => cat.categoryId,
-        );
-        const categories = await this.validateAndFormatCategories(categoryIds);
 
-        await this.prisma.$transaction([
-          this.prisma.categorySupplier.deleteMany({
-            where: { supplierId: id },
-          }),
-          this.prisma.categorySupplier.createMany({
-            data: categories.map((cat) => ({ ...cat, supplierId: id })),
-          }),
-        ]);
+      
+      // const categories = await this.validateAndFormatCategories(
+      //   createSupplierDto.categories || []
+      // );
+    
+      // console.log('categories', categories);
+      
+      // const supplier = await this.prisma.supplier.create({
+      //   data: {
+      //     ...createSupplierDto,
+      //     categories: { create: categories.map(category => ({ category: { connect: { id: category.id } } })) },
+      //   },
+      // });
+
+      if (updateSupplierDto.categories) {
+
+        const categories = await this.validateAndFormatCategories(updateSupplierDto.categories);
+
+        await this.prisma.categorySupplier.deleteMany({
+          where: {
+            supplierId: id,
+          },
+        });
+
+        await this.prisma.categorySupplier.createMany({
+          data: categories.map(category => ({
+            supplierId: id,  // Agregar supplierId manualmente
+            categoryId: category.id, // Corregir cómo se pasan los IDs
+          })),
+        });
+        
       }
 
       const { categories, ...supplierData } = updateSupplierDto;
@@ -227,7 +258,9 @@ export class SuppliersService {
       }
 
       throw new HttpException(
-        await this.i18n.translate('messages.supplier.internError'),
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -245,14 +278,15 @@ export class SuppliersService {
       });
 
       const categoriesNames = [];
-      for(const supplier of suppliers) {
+      for (const supplier of suppliers) {
         const categories = await this.prisma.category.findMany({
-          where: { id: { in: supplier.categories.map((cat) => cat.categoryId) } },
+          where: {
+            id: { in: supplier.categories.map((cat) => cat.categoryId) },
+          },
           select: { name: true },
-        })
+        });
 
         categoriesNames.push(categories.map((cat) => cat.name).join(', '));
-
       }
 
       const data = suppliers.map((supplier, index) => ({
@@ -263,7 +297,6 @@ export class SuppliersService {
         phone: supplier.phone,
         categories: categoriesNames[index],
       }));
-
 
       const columns: ExcelColumn[] = [
         { header: 'Id', key: 'id' },
@@ -281,7 +314,16 @@ export class SuppliersService {
       );
       await this.excelService.exportToResponse(res, workbook, 'suppliers.xlsx');
     } catch (error) {
-      return { error: error.message };
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -290,47 +332,49 @@ export class SuppliersService {
       if (!categoryIds || categoryIds.length === 0) {
         return [];
       }
-
+  
       // Obtener las categorías existentes en la BD
       const existingCategories = await this.prisma.category.findMany({
         where: { id: { in: categoryIds }, isDeleted: false },
         select: { id: true },
       });
-
+  
       // Convertir en un Set para validaciones rápidas
-      const existingCategoryIds = new Set(
-        existingCategories.map((cat) => cat.id),
-      );
-
+      const existingCategoryIds = new Set(existingCategories.map((cat) => cat.id));
+  
       // Validar si todas las categorías existen
       for (const categoryId of categoryIds) {
         if (!existingCategoryIds.has(categoryId)) {
           throw new HttpException(
-            await this.i18n.translate('messages.category.notFound'),
+            await this.i18n.translate('messages.categoryNoFound'),
             HttpStatus.BAD_REQUEST,
           );
         }
       }
-
+  
       // Evitar duplicados en la misma solicitud
       if (new Set(categoryIds).size !== categoryIds.length) {
         throw new HttpException(
-          await this.i18n.translate('messages.category.duplicated'),
+          await this.i18n.translate('messages.categoryDuplicated'),
           HttpStatus.BAD_REQUEST,
         );
       }
-
-      // Formatear los datos para Prisma
-      return categoryIds.map((categoryId) => ({ categoryId }));
+  
+      // Formatear los datos para Prisma (cambiando `categoryId` por `id`)
+      return categoryIds.map((categoryId) => ({ id: categoryId }));
+  
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-
+  
       throw new HttpException(
-        await this.i18n.translate('messages.supplier.internError'),
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
+  
 }
