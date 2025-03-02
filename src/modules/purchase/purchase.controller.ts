@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Res,
+  Req,
 } from '@nestjs/common';
 import { PurchaseService } from './purchase.service';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
@@ -41,8 +42,9 @@ export class PurchaseController {
     status: 500,
     description: 'Internal server error',
   })
-  create(@Body() createPurchaseDto: CreatePurchaseDto) {
-    return this.purchaseService.create(createPurchaseDto);
+  create(@Body() createPurchaseDto: CreatePurchaseDto, @Req() req: any) {
+    const { userId } = req.user;
+    return this.purchaseService.create(createPurchaseDto, userId);
   }
 
   @Get()

@@ -19,10 +19,10 @@ export class PurchaseService {
     private readonly excelService: ExcelService,
   ) {}
 
-  async create(createPurchaseDto: CreatePurchaseDto) {
+  async create(createPurchaseDto: CreatePurchaseDto, userId: string) {
     try {
-      const { purchaseLines, userId, supplierId } = createPurchaseDto;
-
+      const { purchaseLines, supplierId } = createPurchaseDto;
+      console.log(userId)
       let total = 0;
       let productsPrices = [];
 
