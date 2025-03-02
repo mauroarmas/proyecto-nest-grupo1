@@ -7,12 +7,16 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { Prisma } from '@prisma/client';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
+import { ExcelService } from '../excel/excel.service';
+import { ExcelColumn } from 'src/common/interfaces';
+import { Response } from 'express';
 
 @Injectable()
 export class PurchaseService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly excelService: ExcelService,
   ) {}
 
   async create(createPurchaseDto: CreatePurchaseDto) {
@@ -122,7 +126,16 @@ export class PurchaseService {
         purchase,
       };
     } catch (error) {
-      return { message: 'Error al crear la compra', error: error.message };
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -176,7 +189,6 @@ export class PurchaseService {
       });
       const res = paginate(data, total, pagination);
       return res;
-
     } catch (error) {}
     return this.prisma.purchase.findMany({
       include: { purchaseLines: { include: { product: true } } },
@@ -192,5 +204,53 @@ export class PurchaseService {
 
   remove(id: string) {
     return this.prisma.purchase.delete({ where: { id } });
+  }
+
+  async findAllExcel(res: Response) {
+    try {
+      const purchases = await this.prisma.purchase.findMany({
+        where: { isDeleted: false },
+        include: { purchaseLines: { include: { product: true } } }
+      });
+
+
+      const columns: ExcelColumn[] = [
+        { header: 'Compra', key: 'id' },
+        { header: 'Usuario', key: 'userId' },
+        { header: 'Proveedor', key: 'supplierId' },
+        { header: 'Total', key: 'total' },
+        { header: 'Fecha', key: 'createdAt' },
+        { header: 'Productos (Cantidad)', key: 'products' },
+      ];
+
+      const formattedPurchases = purchases.map((purchase) => ({
+        id: purchase.id,
+        userId: purchase.userId,
+        supplierId: purchase.supplierId,
+        total: purchase.total,
+        createdAt: purchase.createdAt,
+        products: purchase.purchaseLines.map((line) => (
+          `${line.product.name} (${line.quantity})`
+        )),
+      }));
+
+      const workbook = await this.excelService.generateExcel(
+        formattedPurchases,
+        columns,
+        'Compras',
+      );
+      await this.excelService.exportToResponse(res, workbook, 'purchases.xlsx');
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
