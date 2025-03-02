@@ -254,8 +254,38 @@ export class SuppliersService {
     }
   }
 
-  remove(id: string) {
-    return this.prisma.supplier.delete({ where: { id } });
+  async remove(id: string) {
+    try{
+
+      const findSupplier = await this.prisma.supplier.findUnique({
+        where: { id, isDeleted: false },
+      })
+
+      if (!findSupplier) {
+        throw new HttpException(
+          await this.i18n.translate('messages.supplier.notFound'),
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      await this.prisma.supplier.update({
+        where: { id },
+        data: { isDeleted: true },
+      })
+
+      return { message: translate(this.i18n, 'messages.supplier.deleted') };
+    }catch(error){
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async findAllExcel(res: Response) {

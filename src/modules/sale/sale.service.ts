@@ -11,6 +11,9 @@ import { ExcelColumn } from 'src/common/interfaces';
 import { Response } from 'express';
 import { PrinterService } from '../printer/printer.service';
 import { generateBillPDF } from '../printer/documents/index';
+import { MessagingService } from '../messaging/messaging.service';
+import { getMessagingConfig } from 'src/common/constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SaleService {
@@ -19,6 +22,8 @@ export class SaleService {
     private readonly i18n: I18nService,
     private readonly excelService: ExcelService,
     private readonly printerService: PrinterService,
+    private messagingService: MessagingService,
+    private configService: ConfigService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto, res: Response) {
@@ -26,19 +31,19 @@ export class SaleService {
       const cart = await this.prisma.cart.findUnique({
         where: { id: createSaleDto.cartId },
       });
-  
+
       if (!cart) {
         throw new HttpException(
           await this.i18n.translate('messages.cartNotFound'),
           HttpStatus.BAD_REQUEST,
         );
       }
-  
+
       await this.prisma.cart.update({
         where: { id: cart.id },
         data: { status: 'completed' },
       });
-  
+
       const sale = await this.prisma.sale.create({
         data: {
           cart: { connect: { id: cart.id } },
@@ -46,9 +51,13 @@ export class SaleService {
         },
         include: { cart: true },
       });
-  
-      // Llamar a getBill para generar y enviar el PDF como respuesta
-      return await this.getBill(sale.id, res);
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: cart.userId },
+      });
+
+
+      return await this.getBill(sale.id, res, user.email);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -61,7 +70,6 @@ export class SaleService {
       );
     }
   }
-  
 
   async findAll(pagination: PaginationArgs) {
     try {
@@ -227,7 +235,7 @@ export class SaleService {
     }
   }
 
-  async getBill(saleId: string, res: Response) {
+  async getBill(saleId: string, res: Response, email?: string) {
     const sale = await this.prisma.sale.findUnique({
       where: { id: saleId },
       include: {
@@ -236,20 +244,47 @@ export class SaleService {
         },
       },
     });
-
+  
     if (!sale) {
       throw new HttpException('Venta no encontrada', HttpStatus.NOT_FOUND);
     }
-
+  
     const docDefinition = await generateBillPDF(sale, sale.cart);
     const pdfDoc = await this.printerService.createPdf(docDefinition);
-
+  
+    // Convertir PDF a Buffer para adjuntarlo
+    const pdfBuffer: Buffer = await new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      pdfDoc.on('data', (chunk) => chunks.push(chunk));
+      pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+      pdfDoc.on('error', reject);
+      pdfDoc.end();
+    });
+  
+    // Enviar el PDF como archivo adjunto por email
+    if (email) {
+      const messagingConfig = getMessagingConfig(this.configService);
+      await this.messagingService.sendBillSale({
+        from: messagingConfig.emailSender,
+        to: email,
+        subject: 'Factura de compra',
+        body: 'Adjunto encontrarás tu factura en formato PDF.',
+        attachments: [
+          {
+            filename: `factura-${sale.id}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
+      });
+    }
+  
+    // Enviar el PDF como respuesta HTTP
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
       `attachment; filename="factura-${sale.id}.pdf"`,
     );
-    pdfDoc.pipe(res);
-    pdfDoc.end();
+    res.send(pdfBuffer);
   }
 }

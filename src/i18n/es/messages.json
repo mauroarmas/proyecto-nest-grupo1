@@ -36,7 +36,7 @@
         "notFound": "Proveedor no encontrado",
         "updated": "Proveedor actualizado con éxito",
         "noCategories": "El proveedor no posee categorías asignadas",
-        "internError": "Error de servidor interno"
+        "deleted": "Proveedor eliminado con éxito"
     },
     "purchase": {
         "created": "Compra creada con éxito",

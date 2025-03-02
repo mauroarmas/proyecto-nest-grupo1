@@ -17,10 +17,11 @@ export class CartController {
   @Roles(RoleEnum.USER)
   @Post()
   createCart(
-    @GetUser() user: User,
+    // @GetUser() user: User,
     @Body() createCartDto: CreateCartDto
   ) {
-    return this.cartService.createCart(createCartDto, user.id);
+    // return this.cartService.createCart(createCartDto, user.id);
+    return this.cartService.createCart(createCartDto);
   }
 
   @Get()

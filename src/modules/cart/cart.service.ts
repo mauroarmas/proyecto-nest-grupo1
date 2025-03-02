@@ -12,8 +12,8 @@ export class CartService {
         private readonly messagingService: MessagingService,
         private configService: ConfigService) {}
 
-    async createCart(createCartDto: CreateCartDto, userId: string) {
-        const { cartLines } = createCartDto;
+    async createCart(createCartDto: CreateCartDto) {
+        const { userId, cartLines } = createCartDto;
 
         //verificar si el usuario ya tiene un carrito activo
         const activeCart = await this.prisma.cart.findFirst({
