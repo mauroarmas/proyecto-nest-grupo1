@@ -29,9 +29,9 @@ export class CreatePurchaseLineDto {
 
 export class CreatePurchaseDto {
 
-  @IsUUID("4", { each: true, message: i18nValidationMessage('errors.isUUID') })
-  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
-  userId: string;
+  // @IsUUID("4", { each: true, message: i18nValidationMessage('errors.isUUID') })
+  // @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
+  // userId: string;
 
   @IsUUID("4", { each: true, message: i18nValidationMessage('errors.isUUID') })
   @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -39,17 +39,31 @@ export class CartService {
         );
 
         if (missingProducts.length > 0) {
-            throw new Error(`Productos no encontrados: ${missingProducts.map(p => p.productId).join(', ')}`);
+            throw new BadRequestException(`Productos no encontrados: ${missingProducts.map(p => p.productId).join(', ')}`);
         }
 
         //verificar stock
-        const insufficientStock = cartLines.filter((cartLine) => {
+        const stockErrors = cartLines.map((cartLine) => {
             const product = products.find((p) => p.id === cartLine.productId);
-            return product.stock < cartLine.quantity;
-        });
+            if (product.stock < cartLine.quantity) {
+                return {
+                    productId: cartLine.productId,
+                    productName: product.name,
+                    requestedQuantity: cartLine.quantity,
+                    availableStock: product.stock
+                };
+            }
+            return null;
+        }).filter(error => error !== null);
 
-        if (insufficientStock.length > 0) {
-            throw new Error(`Stock insuficiente para: ${insufficientStock.map(p => p.productId).join(', ')}`);
+        if (stockErrors.length > 0) {
+            const errorMessages = stockErrors.map(error => 
+                `El producto "${error.productName}" (ID: ${error.productId}) solo tiene ${error.availableStock} unidades disponibles y estás solicitando ${error.requestedQuantity}`
+            );
+            throw new BadRequestException({
+                message: 'Error de stock insuficiente',
+                details: errorMessages
+            });
         }
 
         //si existe un carrito activo, añadir productos a ese carrito
@@ -61,12 +75,23 @@ export class CartService {
                         line => line.productId === cartLine.productId
                     );
 
+                    const totalQuantity = existingLine 
+                        ? existingLine.quantity + cartLine.quantity 
+                        : cartLine.quantity;
+
+                    if (product.stock < totalQuantity) {
+                        throw new BadRequestException(
+                            `No hay suficiente stock para el producto "${product.name}". ` +
+                            `Stock disponible: ${product.stock}, Cantidad total solicitada: ${totalQuantity}`
+                        );
+                    }
+
                     if (existingLine) {
                         await prisma.cartLine.update({
                             where: { id: existingLine.id },
                             data: {
-                                quantity: existingLine.quantity + cartLine.quantity,
-                                subtotal: (existingLine.quantity + cartLine.quantity) * product.price
+                                quantity: totalQuantity,
+                                subtotal: totalQuantity * product.price
                             }
                         });
                     } else {
@@ -258,31 +283,52 @@ export class CartService {
 
     async getCartsByUser(userId: string) {
         const carts = await this.prisma.cart.findMany({
-            where: { userId, status: 'pending', isDeleted: false }
+            where: { 
+                userId, 
+                status: 'pending', 
+                isDeleted: false 
+            },
+            include: {
+                cartLines: {
+                    include: {
+                        product: true
+                    }
+                }
+            }
         });
 
         return carts;
     }
 
-    async deleteCart(cartId: string) {
-        const cart = await this.prisma.cart.update({
+    async deleteCart(cartId: string, userId: string) {
+        // Verificar que el carrito pertenece al usuario
+        const cart = await this.prisma.cart.findUnique({
             where: { id: cartId },
-            data: { isDeleted: true , status: 'cancelled'}
+            include: { cartLines: true }
         });
 
-        const cartLines = await this.prisma.cartLine.findMany({
-            where: { cartId }
+        if (!cart) {
+            throw new NotFoundException('Carrito no encontrado');
+        }
+
+        if (cart.userId !== userId) {
+            throw new UnauthorizedException('No tienes permiso para eliminar este carrito');
+        }
+
+        const updatedCart = await this.prisma.cart.update({
+            where: { id: cartId },
+            data: { isDeleted: true, status: 'cancelled' }
         });
 
         //devolver stock de productos
-        for (const line of cartLines) {
+        for (const line of cart.cartLines) {
             await this.prisma.product.update({
                 where: { id: line.productId },
                 data: { stock: { increment: line.quantity } }
             });
         }
 
-        return cart;
+        return updatedCart;
     }
 
     async getPendingCarts() {
