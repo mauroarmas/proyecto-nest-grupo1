@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  Res,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
@@ -8,13 +21,15 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/common/constants';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-// @UseGuards(JwtAuthGuard, RolesGuard)
-// @Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleEnum.SUPERADMIN)
 @ApiTags('Suppliers')
 @Controller('suppliers')
 export class SuppliersController {
-  constructor(private readonly suppliersService: SuppliersService) { }
+  constructor(private readonly suppliersService: SuppliersService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new supplier' })
@@ -84,7 +99,10 @@ export class SuppliersController {
     status: 500,
     description: 'Internal server error',
   })
-  async update(@Param('id') id: string, @Body() updateSupplierDto: UpdateSupplierDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateSupplierDto: UpdateSupplierDto,
+  ) {
     return await this.suppliersService.update(id, updateSupplierDto);
   }
 
@@ -104,5 +122,37 @@ export class SuppliersController {
   })
   remove(@Param('id') id: string) {
     return this.suppliersService.remove(id);
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @Get('/export/excel')
+  @ApiOperation({ summary: 'Find all suppliers excel' })
+  @ApiResponse({
+    status: 200,
+    description: 'Suppliers found successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  findAllExcel(@Res() res: Response) {
+    return this.suppliersService.findAllExcel(res);
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @Post('/upload/excel')
+  @ApiOperation({ summary: 'Import suppliers in a excel file' })
+  @ApiResponse({
+    status: 200,
+    description: 'Suppliers loaded successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadExcel(@UploadedFile() file: Express.Multer.File) {
+    const data = await this.suppliersService.uploadExcel(file);
+    return { message: 'Suppliers loaded successfully', data };
   }
 }

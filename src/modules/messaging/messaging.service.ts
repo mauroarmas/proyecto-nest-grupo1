@@ -38,4 +38,17 @@ export class MessagingService {
 
     await this.emailService.send({ from, to, subject, body });
   }
+
+  async sendBillSale(input: { from: string; to: string; subject: string; body: string; attachments: any[] }) {
+    const { from, to, subject, body, attachments } = input;
+    
+    await this.emailService.send({
+      from,
+      to,
+      subject,
+      body,
+      attachments,
+    });
+  }
+  
 }

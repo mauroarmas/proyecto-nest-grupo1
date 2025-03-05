@@ -15,6 +15,7 @@ import { ImgProductsModule } from '../img-products/img-products.module';
 import { CartModule } from '../cart/cart.module';
 import { BrandModule } from '../brand/brand.module';
 import { MessangingModule } from '../messaging/messaging.module';
+import { SaleModule } from '../sale/sale.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -35,6 +36,7 @@ import { MessangingModule } from '../messaging/messaging.module';
     CartModule,
     BrandModule,
     MessangingModule,
+    SaleModule
   ],
   controllers: [AppController],
   providers: [AppService],

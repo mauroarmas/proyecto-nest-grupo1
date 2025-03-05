@@ -28,7 +28,7 @@ export class MailjetService implements EmailService {
     });
   }
   async send(input: Email) {
-    const { from, to, subject, body } = input;
+    const { from, to, subject, body, attachments } = input;
     await this.client
       .post('send')
       .request({
@@ -44,6 +44,14 @@ export class MailjetService implements EmailService {
             ],
             Subject: subject,
             HTMLPart: body,
+            Attachments: attachments
+              ? attachments.map((attachment) => ({
+                  ContentType: 'application/pdf',
+                  Filename: attachment.filename,
+                  Base64Content: Buffer.from(attachment.content).toString('base64'),
+              }))
+              : [],
+              
           },
         ],
       })

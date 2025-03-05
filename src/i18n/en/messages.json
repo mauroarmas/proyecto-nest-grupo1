@@ -19,20 +19,24 @@
     "passwordUpdated": "Password updated successfully",
     "recoveryEmailSent": "A recovery email has been sent",
     "invalidOrExpiredToken": "The recovery link is invalid or has expired",
-    "categoryDuplicated": "A category with that name already exists",
+    "categoryDuplicated": "There are one or more duplicated categories",
     "categoryNoFound": "Category not found",
     "categoryInvalidName": "Invalid category name",
     "duplicateBrand": "A brand with that name already exists",
     "brandNotFound": "Brand not found",
     "ProductNotFound": "Product not found",
     "invalidNumber": "The value must be a positive number",
+    "cartNotFound": "Cart not found",
+    "saleCreated": "Sale created successfully",
+    "saleNotFound": "Sale not found",
     "supplier": {
         "created": "Supplier registered successfully",
         "existingMail": "The mail is already in use",
         "existingTaxId": "The taxId is already in use",
         "notFound": "Supplier not found",
         "updated": "Supplier updated successfully",
-        "noCategories": "The supplier does not have assigned categories"
+        "noCategories": "The supplier does not have assigned categories",
+        "deleted": "Supplier deleted successfully"
     },
     "purchase": {
         "created": "Purchase created successfully",
