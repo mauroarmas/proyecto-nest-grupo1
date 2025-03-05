@@ -223,7 +223,7 @@ export class ProductsService {
       categories:
         product.categories
           ?.map((categoryProduct) => categoryProduct.category.name)
-          .join(', ') || 'Sin categoría',
+          .join(',') || 'Sin categoría',
     }));
 
     const workbook = await this.excelService.generateExcel(

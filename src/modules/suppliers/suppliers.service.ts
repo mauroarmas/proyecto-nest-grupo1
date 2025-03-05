@@ -301,7 +301,7 @@ export class SuppliersService {
           select: { name: true },
         });
 
-        categoriesNames.push(categories.map((cat) => cat.name).join(', '));
+        categoriesNames.push(categories.map((cat) => cat.name).join(','));
       }
 
       const data = suppliers.map((supplier, index) => ({
@@ -394,7 +394,7 @@ export class SuppliersService {
 
       for (const row of rows) {
         const { name, email, phone, categories } = row;
-        if (!name || !email || !phone || !categories) {
+        if (!name || !email || !phone || !categories || !row.taxid) {
           throw new HttpException(
             await this.i18n.translate('messages.incompletedFields'),
             HttpStatus.NOT_FOUND,
