@@ -25,7 +25,7 @@ import { Response } from 'express';
 @Roles(RoleEnum.SUPERADMIN)
 @Controller('purchase')
 export class PurchaseController {
-  constructor(private readonly purchaseService: PurchaseService) {}
+  constructor(private readonly purchaseService: PurchaseService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a new purchase' })
@@ -110,5 +110,27 @@ export class PurchaseController {
   })
   findAllExcel(@Res() res: Response) {
     return this.purchaseService.findAllExcel(res);
+  }
+
+  //GRAFICAS
+  @Get('chart/bar')
+  @ApiOperation({ summary: 'Generate a purchase bar chart in PDF format' })
+  @ApiResponse({
+    status: 200,
+    description: 'Purchase report generated successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async generateReport(@Res() res: Response): Promise<void> {
+    const pdfBuffer = await this.purchaseService.generatePurchaseBarChart();
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="purchase_report.pdf"',
+      'Content-Length': pdfBuffer.length.toString(),
+    });
+
+    res.send(pdfBuffer);
   }
 }
