@@ -7,5 +7,6 @@ import { ExcelModule } from '../excel/excel.module';
   imports: [ExcelModule],
   controllers: [SuppliersController],
   providers: [SuppliersService],
+  exports: [SuppliersService],
 })
 export class SuppliersModule {}

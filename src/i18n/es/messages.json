@@ -35,6 +35,10 @@
     "mountOfImages": "Se ha superado el número máximo de imágenes permitidas (5)",
     "noFilesUploaded": "No se han cargado archivos",
     "ProductDeleted": "Producto eliminado con éxito",
+    "genderInexistent": "El género no existe",
+    "categoryInexistentWithName": "La categoria {name} no existe",
+    "categoriesEmpty": "No hay categorias registradas para {name}, registre al menos una categoria",
+    "incompletedFields": "Existen campos incompletos",
     "supplier": {
         "existingMail": "El correo ya está en uso",
         "existingTaxId": "El taxId (CUIT) ya está en uso",

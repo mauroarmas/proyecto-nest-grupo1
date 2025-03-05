@@ -128,6 +128,6 @@ export class ProductsController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadExcel(@UploadedFile() file: Express.Multer.File) { 
     const data = await this.productsService.uploadExcel(file);
-    return { message: 'Productos cargados exitosamente', data };
+    return { message: 'Productos cargados exitosamente'};
   }
 }

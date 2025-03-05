@@ -35,6 +35,10 @@
     "mountOfImages": "The maximum number of images has been exceeded (5)",
     "noFilesUploaded": "No files uploaded",
     "ProductDeleted": "Product deleted successfully",
+    "genderInexistent": "Gender does not exist",
+    "categoryInexistentWithName": "The category {name} does not exist",
+    "categoriesEmpty": "There are no registered categories for {name}, register at least one category",
+    "incompletedFields": "There are incomplete fields",
     "supplier": {
         "created": "Supplier registered successfully",
         "existingMail": "The mail is already in use",
