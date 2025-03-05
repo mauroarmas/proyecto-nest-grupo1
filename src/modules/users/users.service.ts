@@ -32,8 +32,9 @@ export class UsersService {
         throw new BadRequestException(translate(this.i18n, 'messages.invalidLastName'));
       }
 
+      const email = newUser.email.toString().toLowerCase();
       const findEmail = await this.prisma.user.findUnique({
-        where: { email: newUser.email },
+        where: { email },
       });
       if (findEmail) {
         throw new BadRequestException(translate(this.i18n, 'messages.existingMail'));
