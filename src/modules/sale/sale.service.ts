@@ -14,6 +14,11 @@ import { generateBillPDF } from '../printer/documents/index';
 import { MessagingService } from '../messaging/messaging.service';
 import { getMessagingConfig } from 'src/common/constants';
 import { ConfigService } from '@nestjs/config';
+import { ChartService } from '../chart/chart.service';
+import { generatePDFBestSeller } from '../printer/documents/sellsAndBSProducts';
+import { ChartConfiguration } from 'chart.js';
+import { generatePDFSells } from '../printer/documents/sellsAndBSProducts';
+
 
 @Injectable()
 export class SaleService {
@@ -24,6 +29,7 @@ export class SaleService {
     private readonly printerService: PrinterService,
     private messagingService: MessagingService,
     private configService: ConfigService,
+    private readonly chartService: ChartService,
   ) {}
 
   async create(createSaleDto: CreateSaleDto, res: Response) {
@@ -74,10 +80,28 @@ export class SaleService {
   async findAll(pagination: PaginationArgs) {
     try {
       const { search, startDate, endDate, date } = pagination;
-      const dateObj = new Date(date);
-
+  
+      // Filtros de fecha corregidos
+      let dateFilter: Prisma.SaleWhereInput = {};
+  
+      if (startDate && endDate) {
+        dateFilter.createdAt = {
+          gte: new Date(`${startDate}T00:00:00.000Z`),
+          lte: new Date(`${endDate}T23:59:59.999Z`),
+        };
+      } else if (date) {
+        const startOfDay = new Date(`${date}T00:00:00.000Z`);
+        const endOfDay = new Date(`${date}T23:59:59.999Z`);
+  
+        dateFilter.createdAt = {
+          gte: startOfDay,
+          lte: endOfDay,
+        };
+      }
+  
       const where: Prisma.SaleWhereInput = {
         isDeleted: false,
+        ...dateFilter,
         ...(search && {
           OR: [
             {
@@ -87,38 +111,25 @@ export class SaleService {
               },
             },
           ],
-          ...(startDate &&
-            endDate && {
-              createdAt: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-              },
-            }),
-          ...(date && {
-            createdAt: {
-              gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
-              lte: new Date(dateObj.setUTCHours(23, 59, 59, 999)),
-            },
-          }),
         }),
       };
-
+  
       const baseQuery = {
         where,
-        include: { cart: true },
         ...getPaginationFilter(pagination),
+        include: { cart: true },
       };
-
+  
       const total = await this.prisma.sale.count({ where });
       const sales = await this.prisma.sale.findMany(baseQuery);
       const res = paginate(sales, total, pagination);
-
+  
       return res;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-
+  
       throw new HttpException(
         await this.i18n.translate('messages.serverError', {
           args: { error: error.message },
@@ -127,6 +138,7 @@ export class SaleService {
       );
     }
   }
+  
 
   async findOne(id: string) {
     try {
@@ -287,4 +299,72 @@ export class SaleService {
     );
     res.send(pdfBuffer);
   }
+
+  async generateSellsBarChart(): Promise<Buffer> {
+    const sales = await this.prisma.sale.findMany({
+      // where: { status: 'completed' },
+      // select: { id: true, total: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+      include: { cart: true },
+    });
+
+    // console.log(purchases);
+    const groupedByDate = {};
+
+    sales.forEach((sale) => {
+      const date = sale.createdAt.toISOString().split('T')[0];
+      if (!groupedByDate[date]) {
+        groupedByDate[date] = 0;
+      }
+      groupedByDate[date] += Number(sale.cart.total);
+    });
+    const labels = Object.keys(groupedByDate);
+    const data = Object.values(groupedByDate);
+
+    console.log(groupedByDate);
+    console.log(labels);
+    console.log(data);
+
+    const chartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Monto Total de Compras',
+          data,
+          backgroundColor: '#36A2EB',
+        },
+      ],
+    };
+
+    const chartOptions: ChartConfiguration['options'] = {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: {
+          display: true,
+          text: 'Compras por Fecha',
+        },
+      },
+    };
+
+    const chartBuffer = await this.chartService.generateChart(
+      'bar',
+      chartData,
+      chartOptions,
+    );
+
+    const pdfDefinition = await generatePDFSells(chartBuffer);
+
+    const pdfDoc = await this.printerService.createPdf(pdfDefinition);
+
+    return new Promise((resolve, reject) => {
+      const chunks: Uint8Array[] = [];
+      pdfDoc.on('data', (chunk) => chunks.push(chunk));
+      pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+      pdfDoc.on('error', reject);
+      pdfDoc.end();
+    });
+  }
+
+
 }

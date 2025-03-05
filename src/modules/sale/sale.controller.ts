@@ -123,4 +123,17 @@ export class SaleController {
     return this.saleService.getBill(id, res);
   }
 
+  @Roles(RoleEnum.SUPERADMIN)
+  @Get('chart/bar')
+  async generateReport(@Res() res: Response): Promise<void> {
+    const pdfBuffer = await this.saleService.generateSellsBarChart();
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="sales_report.pdf"',
+      'Content-Length': pdfBuffer.length.toString(),
+    });
+
+    res.send(pdfBuffer);
+  }
+
 }

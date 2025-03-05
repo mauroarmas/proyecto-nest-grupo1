@@ -79,7 +79,6 @@ export class ProductsService {
 
   async findAll(pagination: PaginationArgs) {
     try {
-      console.log(Gender);
       const { search, startDate, endDate, date } = pagination;
 
       const dateObj = new Date(date);
