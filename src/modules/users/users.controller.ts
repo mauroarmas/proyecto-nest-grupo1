@@ -30,7 +30,7 @@ import { ApiBody, ApiOperation } from '@nestjs/swagger';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Roles(RoleEnum.SUPERADMIN)
+  @Roles(RoleEnum.SUPERADMIN,RoleEnum.USER)
   @ApiOperation({ summary: 'Create a new user' })
   @ApiBody({ type: CreateUserDto })
   @Post()

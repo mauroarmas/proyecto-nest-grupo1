@@ -1,3 +1,4 @@
+import { ProductImage } from './../../../node_modules/.prisma/client/index.d';
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -57,6 +58,7 @@ export class ProductsService {
         brandId,
         categories: { create: categoryIds.map(id => ({ categoryId: id })) },
       },
+      include: { images: true },
     });
   }
 
@@ -109,6 +111,10 @@ export class ProductsService {
       const baseQuery = {
         where,
         ...getPaginationFilter(pagination),
+        include: {
+          images: true,
+          categories: true,
+        },
       };
 
       const total = await this.prisma.product.count({ where });
@@ -123,7 +129,7 @@ export class ProductsService {
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { categories: true, brand: true },
+      include: { categories: true, brand: true, images: true },
     });
 
     if (!product) {
@@ -146,6 +152,7 @@ export class ProductsService {
     const categories = await this.prisma.category.findMany({
       where: { id: { in: categoryIds } },
     });
+    
 
   }
 
@@ -155,8 +162,14 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
     }
-
-    return this.prisma.product.delete({ where: { id } });
+    const deleteProduct = this.prisma.product.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
+    return {
+      message: this.i18n.translate('messages.ProductDeleted'),
+      deletedProduct: deleteProduct,
+    }
   }
 
   async exportAllExcel(res: Response) {

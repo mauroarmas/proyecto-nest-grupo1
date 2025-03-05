@@ -83,7 +83,7 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsString({ message: i18nValidationMessage('errors.isString') })
-  @MaxLength(255, { message: i18nValidationMessage('errors.maxLength', { value: 255 }) })
+  @MaxLength(1000, { message: i18nValidationMessage('errors.maxLength', { value: 1000 }) })
   bio?: string;
 }
 
