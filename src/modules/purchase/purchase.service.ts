@@ -22,7 +22,7 @@ export class PurchaseService {
   async create(createPurchaseDto: CreatePurchaseDto, userId: string) {
     try {
       const { purchaseLines, supplierId } = createPurchaseDto;
-      console.log(userId)
+      console.log(userId);
       let total = 0;
       let productsPrices = [];
 
@@ -210,9 +210,8 @@ export class PurchaseService {
     try {
       const purchases = await this.prisma.purchase.findMany({
         where: { isDeleted: false },
-        include: { purchaseLines: { include: { product: true } } }
+        include: { purchaseLines: { include: { product: true } } },
       });
-
 
       const columns: ExcelColumn[] = [
         { header: 'Compra', key: 'id' },
@@ -229,9 +228,9 @@ export class PurchaseService {
         supplierId: purchase.supplierId,
         total: purchase.total,
         createdAt: purchase.createdAt,
-        products: purchase.purchaseLines.map((line) => (
-          `${line.product.name} (${line.quantity})`
-        )),
+        products: purchase.purchaseLines.map(
+          (line) => `${line.product.name} (${line.quantity})`,
+        ),
       }));
 
       const workbook = await this.excelService.generateExcel(
