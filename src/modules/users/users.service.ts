@@ -12,6 +12,7 @@ import { ExcelService } from '../excel/excel.service';
 import { ExcelColumn } from 'src/common/interfaces';
 import { I18nService } from 'nestjs-i18n';
 import { translate } from 'src/utils/translation';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -61,7 +62,7 @@ export class UsersService {
 
   async updateProfile(id: string, updateProfileDto: UpdateUserDto) {
     try {
-      const findUser = await this.prisma.user.findUnique({ where: { id } });
+      const findUser = await this.prisma.user.findUnique({ where: { id }, include: { profile: true }});
       if (!findUser) {
         throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }

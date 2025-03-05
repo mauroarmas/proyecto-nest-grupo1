@@ -110,6 +110,7 @@ export class ProductsService {
         ...getPaginationFilter(pagination),
         include: {
           images: true,
+          categories: true,
         },
       };
 
@@ -148,6 +149,7 @@ export class ProductsService {
     const categories = await this.prisma.category.findMany({
       where: { id: { in: categoryIds } },
     });
+    
 
   }
 
@@ -157,7 +159,13 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
     }
-
-    return this.prisma.product.delete({ where: { id } });
+    const deleteProduct = this.prisma.product.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
+    return {
+      message: this.i18n.translate('messages.ProductDeleted'),
+      deletedProduct: deleteProduct,
+    }
   }
 }

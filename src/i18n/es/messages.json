@@ -31,6 +31,7 @@
     "invalidNumber": "El valor debe ser un número positivo",
     "mountOfImages": "Se ha superado el número máximo de imágenes permitidas (5)",
     "noFilesUploaded": "No se han cargado archivos",
+    "ProductDeleted": "Producto eliminado con éxito",
     "supplier": {
         "existingMail": "El correo ya está en uso",
         "existingTaxId": "El taxId (CUIT) ya está en uso",
