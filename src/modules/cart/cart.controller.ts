@@ -5,6 +5,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/common/constants';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { User } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('Cart')
@@ -14,18 +16,25 @@ export class CartController {
 
   @Roles(RoleEnum.USER)
   @Post()
-  createCart(@Body() createCartDto: CreateCartDto) {
+  createCart(
+    // @GetUser() user: User,
+    @Body() createCartDto: CreateCartDto
+  ) {
+    // return this.cartService.createCart(createCartDto, user.id);
     return this.cartService.createCart(createCartDto);
   }
 
-  @Get('/:userId')
-  getCartsByUser(@Param('userId') userId: string) {
-    return this.cartService.getCartsByUser(userId);
+  @Get()
+  getMyCarts(@GetUser() user: User) {
+    return this.cartService.getCartsByUser(user.id);
   }
 
   @Delete('/:cartId')
-  deleteCart(@Param('cartId') cartId: string) {
-    return this.cartService.deleteCart(cartId);
+  deleteCart(
+    @GetUser() user: User,
+    @Param('cartId') cartId: string
+  ) {
+    return this.cartService.deleteCart(cartId, user.id);
   }
 
   @Get('/pending-carts')

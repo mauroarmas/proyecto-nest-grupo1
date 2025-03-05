@@ -7,18 +7,28 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { Prisma } from '@prisma/client';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
+import { ExcelService } from '../excel/excel.service';
+import { ExcelColumn } from 'src/common/interfaces';
+import { Response } from 'express';
+import { ChartService } from '../chart/chart.service';
+import { ChartConfiguration } from 'chart.js';
+import { PrinterService } from '../printer/printer.service';
+import { generatePDF } from '../printer/documents/sample.report';
 
 @Injectable()
 export class PurchaseService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
-  ) {}
+    private readonly excelService: ExcelService,
+    private readonly chartService: ChartService,
+    private readonly printerService: PrinterService,
+  ) { }
 
-  async create(createPurchaseDto: CreatePurchaseDto) {
+  async create(createPurchaseDto: CreatePurchaseDto, userId: string) {
     try {
-      const { purchaseLines, userId, supplierId } = createPurchaseDto;
-
+      const { purchaseLines, supplierId } = createPurchaseDto;
+      console.log(userId)
       let total = 0;
       let productsPrices = [];
 
@@ -122,7 +132,16 @@ export class PurchaseService {
         purchase,
       };
     } catch (error) {
-      return { message: 'Error al crear la compra', error: error.message };
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -150,11 +169,11 @@ export class PurchaseService {
           ],
           ...(startDate &&
             endDate && {
-              createdAt: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-              },
-            }),
+            createdAt: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }),
           ...(date && {
             createdAt: {
               gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
@@ -176,8 +195,7 @@ export class PurchaseService {
       });
       const res = paginate(data, total, pagination);
       return res;
-
-    } catch (error) {}
+    } catch (error) { }
     return this.prisma.purchase.findMany({
       include: { purchaseLines: { include: { product: true } } },
     });
@@ -192,5 +210,113 @@ export class PurchaseService {
 
   remove(id: string) {
     return this.prisma.purchase.delete({ where: { id } });
+  }
+
+  async findAllExcel(res: Response) {
+    try {
+      const purchases = await this.prisma.purchase.findMany({
+        where: { isDeleted: false },
+        include: { purchaseLines: { include: { product: true } } }
+      });
+
+
+      const columns: ExcelColumn[] = [
+        { header: 'Compra', key: 'id' },
+        { header: 'Usuario', key: 'userId' },
+        { header: 'Proveedor', key: 'supplierId' },
+        { header: 'Total', key: 'total' },
+        { header: 'Fecha', key: 'createdAt' },
+        { header: 'Productos (Cantidad)', key: 'products' },
+      ];
+
+      const formattedPurchases = purchases.map((purchase) => ({
+        id: purchase.id,
+        userId: purchase.userId,
+        supplierId: purchase.supplierId,
+        total: purchase.total,
+        createdAt: purchase.createdAt,
+        products: purchase.purchaseLines.map((line) => (
+          `${line.product.name} (${line.quantity})`
+        )),
+      }));
+
+      const workbook = await this.excelService.generateExcel(
+        formattedPurchases,
+        columns,
+        'Compras',
+      );
+      await this.excelService.exportToResponse(res, workbook, 'purchases.xlsx');
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  //GRAFICAS
+  async generatePurchaseBarChart(): Promise<Buffer> {
+    const purchases = await this.prisma.purchase.findMany({
+      select: { id: true, total: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const groupedByDate = {};
+
+    purchases.forEach((purchase) => {
+      const date = purchase.createdAt.toISOString().split('T')[0];
+      if (!groupedByDate[date]) {
+        groupedByDate[date] = 0;
+      }
+      groupedByDate[date] += Number(purchase.total);
+    });
+    const labels = Object.keys(groupedByDate);
+    const data = Object.values(groupedByDate);
+
+    const chartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Monto Total de Compras',
+          data,
+          backgroundColor: '#36A2EB',
+        },
+      ],
+    };
+
+    const chartOptions: ChartConfiguration['options'] = {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: {
+          display: true,
+          text: 'Compras por Fecha',
+        },
+      },
+    };
+
+    const chartBuffer = await this.chartService.generateChart(
+      'bar',
+      chartData,
+      chartOptions,
+    );
+
+    const pdfDefinition = await generatePDF(chartBuffer);
+
+    const pdfDoc = await this.printerService.createPdf(pdfDefinition);
+
+    return new Promise((resolve, reject) => {
+      const chunks: Uint8Array[] = [];
+      pdfDoc.on('data', (chunk) => chunks.push(chunk));
+      pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+      pdfDoc.on('error', reject);
+      pdfDoc.end();
+    });
   }
 }
