@@ -393,15 +393,15 @@ export class SuppliersService {
       const rows = await this.excelService.readExcel(file.buffer);
 
       for (const row of rows) {
-        const { name, email, phone, categories } = row;
-        if (!name || !email || !phone || !categories || !row.taxid) {
+        const { nombre, email, telefono, categorias, cuit } = row;
+        if (!nombre || !email || !telefono || !categorias || !cuit) {
           throw new HttpException(
             await this.i18n.translate('messages.incompletedFields'),
             HttpStatus.NOT_FOUND,
           );
         }
       
-        const taxId = row.taxid.toString();
+        const taxId = row.cuit.toString();
 
         let existingSupplier = await this.prisma.supplier.findFirst({
           where: {
@@ -409,11 +409,11 @@ export class SuppliersService {
           },
         });
 
-        const categoriesArray = categories ? categories.split(',') || [] : []; // converitir a array
+        const categoriesArray = categorias ? categorias.split(',') || [] : []; // converitir a array
         if (categoriesArray.length === 0) {
           throw new HttpException(
             await this.i18n.translate('messages.categoriesEmpty', {
-              args: { name },
+              args: { nombre },
             }),
             HttpStatus.NOT_FOUND,
           );
@@ -461,12 +461,14 @@ export class SuppliersService {
             include: { categories: true },
           });
         } else {
-          const { categories, taxid, ...supplierData } = row;
+          // const { categorias, taxid, nombre, ...supplierData } = row;
 
           const supplier = await this.prisma.supplier.create({
             data: {
-              ...supplierData,
+              phone:telefono,
+              email,
               taxId,
+              name:nombre,
               categories: {
                 create: categoriesObject.map((category) => ({
                   category: { connect: { id: category.id } },
@@ -477,7 +479,7 @@ export class SuppliersService {
         }
       }
 
-      return { message: 'Suppliers loaded successfully' };
+      return { message: translate(this.i18n, 'messages.supplier.uploaded') };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

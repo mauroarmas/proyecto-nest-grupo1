@@ -47,7 +47,8 @@
         "notFound": "Proveedor no encontrado",
         "updated": "Proveedor actualizado con éxito",
         "noCategories": "El proveedor no posee categorías asignadas",
-        "deleted": "Proveedor eliminado con éxito"
+        "deleted": "Proveedor eliminado con éxito",
+        "uploaded": "Proveedores cargados con éxito"
     },
     "purchase": {
         "created": "Compra creada con éxito",

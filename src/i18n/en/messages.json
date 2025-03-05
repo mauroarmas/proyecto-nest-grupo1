@@ -47,7 +47,8 @@
         "notFound": "Supplier not found",
         "updated": "Supplier updated successfully",
         "noCategories": "The supplier does not have assigned categories",
-        "deleted": "Supplier deleted successfully"
+        "deleted": "Supplier deleted successfully",
+        "uploaded": "Suppliers loaded successfully"
     },
     "purchase": {
         "created": "Purchase created successfully",
