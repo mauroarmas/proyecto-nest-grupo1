@@ -3,10 +3,6 @@ import { i18nValidationMessage } from "nestjs-i18n";
 import { IsNotEmpty, IsArray } from "class-validator";
 
 export class CreateCartDto {
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
-
   @IsArray()
   @IsNotEmpty()
   cartLines: CreateCartLineDto[];
