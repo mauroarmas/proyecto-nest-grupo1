@@ -1,3 +1,4 @@
+import { ProductImage } from './../../../node_modules/.prisma/client/index.d';
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -57,6 +58,7 @@ export class ProductsService {
         brandId,
         categories: { create: categoryIds.map(id => ({ categoryId: id })) },
       },
+      include: { images: true },
     });
   }
 
@@ -109,6 +111,10 @@ export class ProductsService {
       const baseQuery = {
         where,
         ...getPaginationFilter(pagination),
+        include: {
+          images: true,
+          categories: true,
+        },
       };
 
       const total = await this.prisma.product.count({ where });
@@ -123,7 +129,7 @@ export class ProductsService {
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { categories: true, brand: true },
+      include: { categories: true, brand: true, images: true },
     });
 
     if (!product) {
@@ -146,6 +152,7 @@ export class ProductsService {
     const categories = await this.prisma.category.findMany({
       where: { id: { in: categoryIds } },
     });
+    
 
   }
 
@@ -155,8 +162,122 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException(this.i18n.translate('messages.ProductNotFound'));
     }
+    const deleteProduct = this.prisma.product.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
+    return {
+      message: this.i18n.translate('messages.ProductDeleted'),
+      deletedProduct: deleteProduct,
+    }
+  }
 
-    return this.prisma.product.delete({ where: { id } });
+  async exportAllExcel(res: Response) {
+    const products = await this.prisma.product.findMany({
+      where: { isDeleted: false },
+      include: {
+        brand: true,
+        categories: { include: { category: true } },
+      },
+    });
+
+    const columns: ExcelColumn[] = [
+      { header: 'ID del Producto', key: 'id' },
+      { header: 'Nombre', key: 'name' },
+      { header: 'Precio', key: 'price' },
+      { header: 'Stock', key: 'stock' },
+      { header: 'Marca', key: 'brand' },
+      { header: 'Categorías', key: 'categories' },
+    ];
+
+    const formattedProducts = products.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      stock: product.stock,
+      brand: product.brand?.name || 'N/A',
+      categories: product.categories
+        ?.map((categoryProduct) => categoryProduct.category.name)
+        .join(', ') || 'Sin categoría',
+    }));
+
+    const workbook = await this.excelService.generateExcel(formattedProducts, columns, 'Productos');
+    await this.excelService.exportToResponse(res, workbook, 'products.xlsx');
+  }
+
+  async ensureCategoryWithSupplier(categoryName: string, supplierId: string) {
+    let category = await this.prisma.category.findFirst({
+      where: { name: categoryName, isDeleted: false },
+    });
+
+    if (!category) {
+      category = await this.prisma.category.create({
+        data: {
+          name: categoryName,
+          suppliers: {
+            create: [{ supplierId }],
+          },
+        },
+      });
+    } else {
+      await this.prisma.categorySupplier.upsert({
+        where: { categoryId_supplierId: { categoryId: category.id, supplierId } },
+        update: {},
+        create: { categoryId: category.id, supplierId },
+      });
+    }
+
+    return category;
+  }
+
+  async uploadExcel(file: Express.Multer.File) {
+
+    const products = await this.excelService.readExcel(file.buffer);
+
+    for (const element of products) {
+      const { name, price, stock, brand, categories, supplier } = element;
+
+      if (price <= 0 || stock <= 0) {
+        throw new ConflictException(this.i18n.translate('messages.invalidNumber'));
+      }
+
+      const existingProduct = await this.prisma.product.findFirst({ where: { name } });
+
+      if (!existingProduct) {
+        let brandData = await this.prisma.brand.findFirst({ where: { name: brand } });
+
+        if (!brandData) {
+          brandData = await this.prisma.brand.create({
+            data: { name: brand },
+          });
+        }
+
+        let supplierData = await this.prisma.supplier.findFirst({ where: { taxId: supplier.toString() } });
+
+        const categoriesArray = categories ? categories.split(',') || [] : [];
+
+        const categoryRecords = await Promise.all(
+          categoriesArray.map((categoryName) =>
+            this.ensureCategoryWithSupplier(categoryName, supplierData.id || '')
+          )
+        );
+
+        await this.prisma.product.create({
+          data: {
+            name,
+            price,
+            stock,
+            brandId: brandData.id,
+            gender: "UNISEX",
+            categories: {
+              create: categoryRecords.map((category) => ({
+                categoryId: category.id,
+              })),
+            },
+          },
+        });
+      }
+    }
   }
 
   async exportAllExcel(res: Response) {
