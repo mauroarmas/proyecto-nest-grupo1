@@ -43,6 +43,7 @@ async function bootstrap() {
   const NODE_ENV = configService.get<string>('NODE_ENV');
 
   setupSwagger(app);
+  setupSwagger(app);
 
   await app.listen(PORT, () => {
     Logger.log(

@@ -1,16 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/constants';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) { }
 
+  @Roles(RoleEnum.SUPERADMIN)
   @Post()
   @ApiOperation({ summary: 'Create a new product' })
   @ApiBody({ type: CreateProductDto })
@@ -30,6 +36,7 @@ export class ProductsController {
     return this.productsService.create(createProductDto);
   }
 
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @Get()
   @ApiOperation({ summary: 'List all products' })
   @ApiBody({ type: CreateProductDto })
@@ -45,6 +52,7 @@ export class ProductsController {
     return this.productsService.findAll(pagination);
   }
 
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @Get(':id')
   @ApiOperation({ summary: 'Search for a product by ID' })
   @ApiBody({ type: CreateProductDto })
@@ -64,6 +72,7 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
+  @Roles(RoleEnum.SUPERADMIN)
   @Patch(':id')
   @ApiOperation({ summary: 'Update a product' })
   @ApiBody({ type: UpdateProductDto })
@@ -87,6 +96,7 @@ export class ProductsController {
     return this.productsService.update(id, updateProductDto);
   }
 
+  @Roles(RoleEnum.SUPERADMIN)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a product' })
   @ApiResponse({
@@ -105,12 +115,14 @@ export class ProductsController {
     return this.productsService.remove(id);
   }
 
+  @Roles(RoleEnum.SUPERADMIN)
   @ApiOperation({ summary: 'Export all products to Excel' })
   @Get('export/excel')
   findAllByProfessionalExcel(@Res() res: Response) {
     return this.productsService.exportAllExcel(res);
   }
 
+  @Roles(RoleEnum.SUPERADMIN)
   @ApiOperation({ summary: 'Upload products from Excel' }) 
   @Post('upload/excel')
   @UseInterceptors(FileInterceptor('file'))

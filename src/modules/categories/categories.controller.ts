@@ -1,14 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ApiBody, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/constants';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Categories')
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) { }
 
+  @Roles(RoleEnum.SUPERADMIN)
   @Post()
   @ApiOperation({ summary: 'Create a new category' })
   @ApiBody({ type: CreateCategoryDto })
@@ -28,6 +34,7 @@ export class CategoriesController {
     return this.categoriesService.create(createCategoryDto);
   }
 
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @Get()
   @ApiOperation({ summary: 'List all categories' })
   @ApiBody({ type: CreateCategoryDto })
@@ -43,6 +50,7 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @Get(':id')
   @ApiOperation({ summary: 'Search for a category by ID' })
   @ApiBody({ type: CreateCategoryDto })
@@ -62,6 +70,7 @@ export class CategoriesController {
     return this.categoriesService.findOne(id);
   }
 
+  @Roles(RoleEnum.SUPERADMIN)
   @Patch(':id')
   @ApiOperation({ summary: 'Update a category' })
   @ApiBody({ type: UpdateCategoryDto })
@@ -85,6 +94,7 @@ export class CategoriesController {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
+  @Roles(RoleEnum.SUPERADMIN)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a category' })
   @ApiResponse({
