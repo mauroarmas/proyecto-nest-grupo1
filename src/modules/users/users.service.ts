@@ -32,6 +32,11 @@ export class UsersService {
         throw new BadRequestException(translate(this.i18n, 'messages.invalidLastName'));
       }
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(newUser.email)) {
+        throw new BadRequestException(translate(this.i18n, 'messages.invalidEmail'));
+      }
+
       const email = newUser.email.toString().toLowerCase();
       const findEmail = await this.prisma.user.findUnique({
         where: { email },
