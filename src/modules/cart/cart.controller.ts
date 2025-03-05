@@ -5,7 +5,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/common/constants';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
-import { User } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('Cart')
