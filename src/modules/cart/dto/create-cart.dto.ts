@@ -8,8 +8,8 @@ export class CreateCartLineDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
     type: String
   })
-  @IsUUID()
-  @IsNotEmpty({ message: i18nValidationMessage('validation.NOT_EMPTY') })
+  @IsUUID('4', { message: i18nValidationMessage('errors.isUUID') })
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
   productId: string;
 
   @ApiProperty({
@@ -18,8 +18,8 @@ export class CreateCartLineDto {
     minimum: 1,
     type: Number
   })
-  @IsNumber()
-  @IsNotEmpty({ message: i18nValidationMessage('validation.NOT_EMPTY') })
+  @IsNumber({}, { message: i18nValidationMessage('errors.isNumber') })
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
   quantity: number;
 }
 
@@ -32,7 +32,7 @@ export class CreateCartDto {
       quantity: 2
     }]
   })
-  @IsArray()
-  @IsNotEmpty({ message: i18nValidationMessage('validation.NOT_EMPTY') })
+  @IsArray({ message: i18nValidationMessage('errors.isArray') })
+  @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
   cartLines: CreateCartLineDto[];
 }
