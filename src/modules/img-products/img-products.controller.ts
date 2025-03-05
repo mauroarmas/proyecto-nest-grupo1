@@ -6,12 +6,9 @@ import {
   UseInterceptors,
   UploadedFiles,
   UseFilters,
-  BadRequestException,
   Delete,
-  Req,
 } from '@nestjs/common';
 import { ImgProductsService } from './img-products.service';
-import { CreateImgProductDto } from './dto/create-img-product.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { MulterExceptionFilter } from 'src/common/filters/multer-exception.filter';
 
