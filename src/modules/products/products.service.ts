@@ -210,7 +210,7 @@ export class ProductsService {
       { header: 'Stock', key: 'stock' },
       { header: 'Marca', key: 'brand' },
       { header: 'Genero', key: 'gender' },
-      { header: 'Categorías', key: 'categories' },
+      { header: 'Categorias', key: 'categories' },
     ];
 
     const formattedProducts = products.map((product) => ({
@@ -238,22 +238,22 @@ export class ProductsService {
     const products = await this.excelService.readExcel(file.buffer);
 
     for (const element of products) {
-      const { name, price, stock, brand, categories, gender } = element;
-      if (!name || !price || !stock || !categories || !brand || !gender) {
+      const { nombre, precio, stock, marca, categorias, genero } = element;
+      if (!nombre || !precio || !stock || !categorias || !marca || !genero) {
         throw new ConflictException(
           await this.i18n.translate('messages.incompletedFields'),
         );
       }
-      const priceFloat = parseFloat(price);
+      const priceFloat = parseFloat(precio);
 
       const existingProduct = await this.prisma.product.findFirst({
-        where: { name },
+        where: { name: nombre },
       });
 
       if (
         !Object.prototype.hasOwnProperty.call(
           Gender,
-          gender.toString().toUpperCase(),
+          genero.toString().toUpperCase(),
         )
       ) {
         throw new ConflictException(
@@ -261,26 +261,26 @@ export class ProductsService {
         );
       }
 
-      if (price <= 0 || stock <= 0) {
+      if (precio <= 0 || stock <= 0) {
         throw new ConflictException(
           this.i18n.translate('messages.invalidNumber'),
         );
       }
 
       let brandData = await this.prisma.brand.findFirst({
-        where: { name: brand },
+        where: { name: marca },
       });
       if (!brandData) {
         brandData = await this.prisma.brand.create({
-          data: { name: brand },
+          data: { name: marca },
         });
       }
 
-      const categoriesArray = categories ? categories.split(',') || [] : [];
+      const categoriesArray = categorias ? categorias.split(',') || [] : [];
       if (categoriesArray.length === 0) {
         throw new NotFoundException(
           await this.i18n.translate('messages.categoriesEmpty', {
-            args: { name },
+            args: { nombre },
           }),
         );
       }
@@ -323,18 +323,20 @@ export class ProductsService {
         const product = await this.prisma.product.update({
           where: { id: existingProduct.id },
           data: {
-            ...existingProduct,
+            name: nombre,
             price: priceFloat,
+            stock,
+            gender: genero,
           },
 
           include: { categories: true, brand: true },
         });
       } else {
-        const { categories, price, ...productData } = element;
-
         const product = await this.prisma.product.create({
           data: {
-            ...productData,
+            name:nombre,
+            gender: genero,
+            stock,
             price: priceFloat,
             brand: { connect: { id: brandData.id } },
             categories: {
