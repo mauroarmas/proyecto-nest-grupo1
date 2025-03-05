@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Products')
 @Controller('products')
@@ -102,5 +103,19 @@ export class ProductsController {
   })
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
+  }
+
+  @ApiOperation({ summary: 'Export all products to Excel' })
+  @Get('export/excel')
+  findAllByProfessionalExcel(@Res() res: Response) {
+    return this.productsService.exportAllExcel(res);
+  }
+
+  @ApiOperation({ summary: 'Upload products from Excel' }) 
+  @Post('upload/excel')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadExcel(@UploadedFile() file: Express.Multer.File) { 
+    const data = await this.productsService.uploadExcel(file);
+    return { message: 'Productos cargados exitosamente', data };
   }
 }

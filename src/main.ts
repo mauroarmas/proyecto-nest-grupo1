@@ -5,9 +5,9 @@ import { ClassSerializerInterceptor, Logger } from '@nestjs/common';
 import { AppModule } from './modules/app/app.module';
 import { ValidationsExceptionFilter } from './common/middlewares';
 import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { I18nValidationPipe } from 'nestjs-i18n';
 import * as bodyParser from 'body-parser';
+import { setupSwagger } from './config/swagger.config';
 import { MulterExceptionFilter } from './common/filters/multer-exception.filter';
 
 async function bootstrap() {
@@ -42,15 +42,7 @@ async function bootstrap() {
   const PORT = configService.get<number>('PORT');
   const NODE_ENV = configService.get<string>('NODE_ENV');
 
-  // Revisar
-  const config = new DocumentBuilder()
-    .setTitle('API NestJs')
-    .setDescription('Proyecto final NestJs')
-    .setVersion('1.0')
-    .addTag('Proyecto 1')
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  setupSwagger(app);
 
   await app.listen(PORT, () => {
     Logger.log(
@@ -59,6 +51,5 @@ async function bootstrap() {
     );
     Logger.log(`Current Environment: ${NODE_ENV}`, NestApplication.name);
   });
-
 }
 bootstrap();

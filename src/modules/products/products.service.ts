@@ -8,12 +8,15 @@ import { I18nService } from 'nestjs-i18n';
 import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 import { getPaginationFilter } from 'src/utils/pagination/pagination.utils';
 import { paginate } from 'src/utils/pagination/parsing';
+import { ExcelService } from '../excel/excel.service';
+import { ExcelColumn } from 'src/common/interfaces';
 
 @Injectable()
 export class ProductsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
+    private readonly excelService: ExcelService
   ) { }
 
   async create(newProduct: CreateProductDto) {
@@ -166,6 +169,114 @@ export class ProductsService {
     return {
       message: this.i18n.translate('messages.ProductDeleted'),
       deletedProduct: deleteProduct,
+    }
+  }
+
+  async exportAllExcel(res: Response) {
+    const products = await this.prisma.product.findMany({
+      where: { isDeleted: false },
+      include: {
+        brand: true,
+        categories: { include: { category: true } },
+      },
+    });
+
+    const columns: ExcelColumn[] = [
+      { header: 'ID del Producto', key: 'id' },
+      { header: 'Nombre', key: 'name' },
+      { header: 'Precio', key: 'price' },
+      { header: 'Stock', key: 'stock' },
+      { header: 'Marca', key: 'brand' },
+      { header: 'Categorías', key: 'categories' },
+    ];
+
+    const formattedProducts = products.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      stock: product.stock,
+      brand: product.brand?.name || 'N/A',
+      categories: product.categories
+        ?.map((categoryProduct) => categoryProduct.category.name)
+        .join(', ') || 'Sin categoría',
+    }));
+
+    const workbook = await this.excelService.generateExcel(formattedProducts, columns, 'Productos');
+    await this.excelService.exportToResponse(res, workbook, 'products.xlsx');
+  }
+
+  async ensureCategoryWithSupplier(categoryName: string, supplierId: string) {
+    let category = await this.prisma.category.findFirst({
+      where: { name: categoryName, isDeleted: false },
+    });
+
+    if (!category) {
+      category = await this.prisma.category.create({
+        data: {
+          name: categoryName,
+          suppliers: {
+            create: [{ supplierId }],
+          },
+        },
+      });
+    } else {
+      await this.prisma.categorySupplier.upsert({
+        where: { categoryId_supplierId: { categoryId: category.id, supplierId } },
+        update: {},
+        create: { categoryId: category.id, supplierId },
+      });
+    }
+
+    return category;
+  }
+
+  async uploadExcel(file: Express.Multer.File) {
+
+    const products = await this.excelService.readExcel(file.buffer);
+
+    for (const element of products) {
+      const { name, price, stock, brand, categories, supplier } = element;
+
+      if (price <= 0 || stock <= 0) {
+        throw new ConflictException(this.i18n.translate('messages.invalidNumber'));
+      }
+
+      const existingProduct = await this.prisma.product.findFirst({ where: { name } });
+
+      if (!existingProduct) {
+        let brandData = await this.prisma.brand.findFirst({ where: { name: brand } });
+
+        if (!brandData) {
+          brandData = await this.prisma.brand.create({
+            data: { name: brand },
+          });
+        }
+
+        let supplierData = await this.prisma.supplier.findFirst({ where: { taxId: supplier.toString() } });
+
+        const categoriesArray = categories ? categories.split(',') || [] : [];
+
+        const categoryRecords = await Promise.all(
+          categoriesArray.map((categoryName) =>
+            this.ensureCategoryWithSupplier(categoryName, supplierData.id || '')
+          )
+        );
+
+        await this.prisma.product.create({
+          data: {
+            name,
+            price,
+            stock,
+            brandId: brandData.id,
+            gender: "UNISEX",
+            categories: {
+              create: categoryRecords.map((category) => ({
+                categoryId: category.id,
+              })),
+            },
+          },
+        });
+      }
     }
   }
 }

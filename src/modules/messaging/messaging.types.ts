@@ -5,7 +5,9 @@ export type Email = {
   from: string;
   subject: string;
   body: string;
+  attachments?: { filename: string; content: Buffer; contentType: string }[];
 };
+
 
 export interface EmailService {
   send(email: Email): Promise<void>;
