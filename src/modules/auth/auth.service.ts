@@ -28,6 +28,8 @@ export class AuthService {
 
   async register(user: CreateUserDto) {
     try {
+      const userEmail = user.email.toString().toLowerCase();
+      user.email = userEmail;
       const findUser = await this.prisma.user.findUnique({
         where: {
           email: user.email,
@@ -73,7 +75,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError', {
+        await this.i18n.translate('messages.serverError', {
           args: { error: error.message },
         }),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -83,7 +85,8 @@ export class AuthService {
 
   async login(credentials: LoginAuthDto) {
     try {
-      const { email, password } = credentials;
+      const { password } = credentials;
+      const email = credentials.email.toString().toLowerCase();
       const findUser = await this.prisma.user.findUnique({
         where: { email },
       });
@@ -139,7 +142,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError'),
+        await this.i18n.translate('messages.serverError'),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -185,7 +188,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError'),
+        await this.i18n.translate('messages.serverError'),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -236,7 +239,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError'),
+        await this.i18n.translate('messages.serverError'),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -302,7 +305,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError'),
+        await this.i18n.translate('messages.serverError'),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

@@ -39,6 +39,7 @@
     "categoryInexistentWithName": "The category {name} does not exist",
     "categoriesEmpty": "There are no registered categories for {name}, register at least one category",
     "incompletedFields": "There are incomplete fields",
+    "existingMail": "The mail is already in use",
     "supplier": {
         "created": "Supplier registered successfully",
         "existingMail": "The mail is already in use",

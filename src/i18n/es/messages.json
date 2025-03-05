@@ -39,6 +39,7 @@
     "categoryInexistentWithName": "La categoria {name} no existe",
     "categoriesEmpty": "No hay categorias registradas para {name}, registre al menos una categoria",
     "incompletedFields": "Existen campos incompletos",
+    "existingMail": "El correo ya está en uso",
     "supplier": {
         "existingMail": "El correo ya está en uso",
         "existingTaxId": "El taxId (CUIT) ya está en uso",
