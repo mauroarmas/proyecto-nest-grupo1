@@ -16,6 +16,7 @@
     "fileTooLarge": "The file is too large, it must not exceed 1.5 MB",
     "uploadImages": "Images uploaded successfully",
     "invalidCredentials": "Invalid credentials",
+    "invalidEmail": "Invalid email",
     "serverError": "Server error: {error}",
     "userDeleted": "This account has been deactivated",
     "passwordsDoNotMatch": "Passwords do not match",
