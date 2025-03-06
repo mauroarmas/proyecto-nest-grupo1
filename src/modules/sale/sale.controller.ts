@@ -104,6 +104,34 @@ export class SaleController {
     return this.saleService.findAllExcel(res);
   }
 
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
+  @Get('pdf/incomes-pdf')
+  async getIncomes(
+    @Res() res: Response,
+    @Query() query: any,
+    pagination: PaginationArgs,
+  ): Promise<void> {
+    try {
+      const pagination: PaginationArgs = {
+        startDate: query.startDate || undefined,
+        endDate: query.endDate || undefined,
+        date: query.date || undefined,
+        search: query.search || undefined,
+        page: query.page || 1,
+        perPage: query.perPage || 10,
+      };
+      const pdfBuffer = await this.saleService.incomesByDatePDF(pagination);
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="incomes-report.pdf"',
+        'Content-Length': pdfBuffer.length.toString(),
+      });
+      res.send(pdfBuffer);
+    } catch (error) {
+      res.status(500).send('Error al generar el PDF');
+    }
+  }
+
   @Roles(RoleEnum.SUPERADMIN)
   @Get('pdf/:id')
   @ApiOperation({ summary: 'Generate a PDF of a sale' })
@@ -121,24 +149,6 @@ export class SaleController {
   })
   generatePDF(@Param('id') id: string, @Res() res: Response) {
     return this.saleService.getBill(id, res);
-  }
-
-  @Roles(RoleEnum.SUPERADMIN)
-  @ApiOperation({ summary: 'Get sells report' })
-  @ApiResponse({
-    status: 200,
-    description: 'Sales report generated successfully',
-  })
-  @Get('chart/bar')
-  async generateReport(@Res() res: Response): Promise<void> {
-    const pdfBuffer = await this.saleService.generateSellsBarChart();
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename="sales_report.pdf"',
-      'Content-Length': pdfBuffer.length.toString(),
-    });
-
-    res.send(pdfBuffer);
   }
 
 }
