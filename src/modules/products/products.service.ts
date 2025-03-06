@@ -16,6 +16,12 @@ import { ExcelService } from '../excel/excel.service';
 import { ExcelColumn } from 'src/common/interfaces';
 import { Gender } from '@prisma/client';
 import { SuppliersService } from '../suppliers/suppliers.service';
+import { Response } from 'express';
+import { ChartConfiguration } from 'chart.js';
+import { ChartService } from '../chart/chart.service';
+import { PrinterService } from '../printer/printer.service';
+import { generatePDFBestSeller } from '../printer/documents/sellsAndBSProducts';
+
 
 @Injectable()
 export class ProductsService {
@@ -24,6 +30,8 @@ export class ProductsService {
     private readonly i18n: I18nService,
     private readonly excelService: ExcelService,
     private readonly suppliersService: SuppliersService,
+    private readonly chartService: ChartService,
+    private readonly printerService: PrinterService,
   ) {}
 
   async create(newProduct: CreateProductDto) {
@@ -78,7 +86,6 @@ export class ProductsService {
 
   async findAll(pagination: PaginationArgs) {
     try {
-      console.log(Gender);
       const { search, startDate, endDate, date } = pagination;
 
       const dateObj = new Date(date);
@@ -348,4 +355,86 @@ export class ProductsService {
       }
     }
   }
+
+  
+  async getBestSellerProductsChart(quantity: number): Promise<Buffer> {
+    const bestSeller = await this.getMostPurchasedProducts(quantity);
+
+    const labels = bestSeller.map((bs) => bs.productName+' - $'+bs.totalRevenue);
+    const data = bestSeller.map((bs) => bs.sells);
+
+    const chartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Cantidad de Ventas',
+          data,
+          backgroundColor: 'rgb(255, 205, 86)',
+        },
+      ],
+    };
+
+    const chartOptions: ChartConfiguration['options'] = {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: {
+          display: true,
+          text: 'Productos Más Vendidos',
+        },
+      },
+    };
+
+    const chartBuffer = await this.chartService.generateChart(
+      'bar',
+      chartData,
+      chartOptions,
+    );
+
+    const pdfDefinition = await generatePDFBestSeller(chartBuffer);
+
+    const pdfDoc = await this.printerService.createPdf(pdfDefinition);
+
+    return new Promise((resolve, reject) => {
+      const chunks: Uint8Array[] = [];
+      pdfDoc.on('data', (chunk) => chunks.push(chunk));
+      pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+      pdfDoc.on('error', reject);
+      pdfDoc.end();
+    });
+  }
+
+  async getMostPurchasedProducts(quantity: number) {
+    const productsSum = await this.prisma.cartLine.groupBy({
+      by: ['productId'],
+      where: {
+        cart: {
+          status: 'completed',
+        }
+      },
+      _sum: {
+        quantity: true,
+        subtotal: true,
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc',
+        },
+      }
+    });
+
+    const limitedProductsSum = productsSum.slice(0, quantity);
+    let bestSeller = []
+
+    for(const p of limitedProductsSum){
+      const product = await this.prisma.product.findUnique({
+        where: {id: p.productId}
+      })
+
+      bestSeller.push({productName: product.name, sells: p._sum.quantity, totalRevenue: p._sum.subtotal})
+    }
+
+    return bestSeller;
+  }
+
 }
