@@ -61,5 +61,8 @@
     "purchase": {
         "created": "Purchase created successfully",
         "notSupplier": "The categories of the product {value} do not match those of the selected supplier"
+    },
+    "cart": {
+        "quantityZero": "The quantity of the product {product} cannot be 0"
     }
 }

@@ -56,6 +56,14 @@ export class CartService {
 
         const stockErrors = cartLines.map((cartLine) => {
             const product = products.find((p) => p.id === cartLine.productId);
+
+            if (cartLine.quantity <= 0) {
+                return {
+                    productId: cartLine.productId,
+                    productName: product.name,
+                    error: 'quantity_zero'
+                };
+            }
             if (product.stock < cartLine.quantity) {
                 return {
                     productId: cartLine.productId,
@@ -63,9 +71,6 @@ export class CartService {
                     requestedQuantity: cartLine.quantity,
                     availableStock: product.stock
                 };
-            }
-            if(cartLine.quantity === 0){
-                
             }
             return null;
         }).filter(error => error !== null);
