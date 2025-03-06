@@ -19,6 +19,7 @@ import { generatePDFBestSeller } from '../printer/documents/sellsAndBSProducts';
 import { ChartConfiguration } from 'chart.js';
 import { generatePDFSells } from '../printer/documents/sellsAndBSProducts';
 import { generatePDFincomes } from '../printer/documents/sample.report';
+import { translate } from 'src/utils/translation';
 
 @Injectable()
 export class SaleService {
@@ -300,15 +301,14 @@ export class SaleService {
     const startDateObj = new Date(startDate);
     const endDateObj = new Date(endDate);
 
-    // Validaciones
     if (startDate && isNaN(Date.parse(startDate))) {
-      throw new BadRequestException('Fecha de inicio inválida');
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidInitDate'));
     }
     if (endDate && isNaN(Date.parse(endDate))) {
-      throw new BadRequestException('Fecha de fin inválida');
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidEndDate'));
     }
     if (date && isNaN(Date.parse(date))) {
-      throw new BadRequestException('Fecha única inválida');
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidUniqueDate'));
     }
 
     const sales = await this.prisma.sale.findMany({

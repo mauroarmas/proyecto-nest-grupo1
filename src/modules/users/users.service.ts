@@ -72,7 +72,6 @@ export class UsersService {
       if (!findUser) {
         throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
-      console.log(findUser)
       const user = await this.prisma.user.update({
         where: { id },
         data: { profile: { update: updateProfileDto } },
