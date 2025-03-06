@@ -36,10 +36,6 @@ export class CartService {
             },
         });
 
-        // if(products.length === 0) {
-        //     throw new BadRequestException('No se encontraron productos');
-        // }
-
         const missingProducts = cartLines.filter((cartLine) =>
             !products.some((product) => product.id === cartLine.productId)
         );
