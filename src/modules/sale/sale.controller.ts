@@ -124,6 +124,11 @@ export class SaleController {
   }
 
   @Roles(RoleEnum.SUPERADMIN)
+  @ApiOperation({ summary: 'Get sells report' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sales report generated successfully',
+  })
   @Get('chart/bar')
   async generateReport(@Res() res: Response): Promise<void> {
     const pdfBuffer = await this.saleService.generateSellsBarChart();

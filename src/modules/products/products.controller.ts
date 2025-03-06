@@ -9,6 +9,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/common/constants';
+import { Response } from 'express';
+
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Products')
@@ -117,6 +119,14 @@ export class ProductsController {
 
   @Roles(RoleEnum.SUPERADMIN)
   @ApiOperation({ summary: 'Export all products to Excel' })
+  @ApiResponse({
+    status: 200,
+    description: 'Products exported successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   @Get('export/excel')
   findAllByProfessionalExcel(@Res() res: Response) {
     return this.productsService.exportAllExcel(res);
@@ -124,10 +134,55 @@ export class ProductsController {
 
   @Roles(RoleEnum.SUPERADMIN)
   @ApiOperation({ summary: 'Upload products from Excel' }) 
+  @ApiResponse({
+    status: 200,
+    description: 'Products uploaded successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
   @Post('upload/excel')
   @UseInterceptors(FileInterceptor('file'))
   async uploadExcel(@UploadedFile() file: Express.Multer.File) { 
     const data = await this.productsService.uploadExcel(file);
     return { message: 'Productos cargados exitosamente'};
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @ApiOperation({ summary: 'Get the best seller products' })
+  @ApiResponse({
+    status: 200,
+    description: 'Best seller products found successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @Get('bestSeller/:quantity')
+  getMostPurchasedProducts( @Param('quantity') quantity: number) {
+    return this.productsService.getMostPurchasedProducts(quantity);
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @ApiOperation({ summary: 'Get the best seller products chart' })
+  @ApiResponse({
+    status: 200,
+    description: 'Best seller products chart generated successfully',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @Get('bestSeller/chart/:quantity')
+  async getMostPurchasedProductsChart(@Res()res: Response, @Param('quantity') quantity: number): Promise<void>  {
+    const pdfBuffer = await this.productsService.getBestSellerProductsChart(quantity);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="bestSellersSupport.pdf"',
+      'Content-Length': pdfBuffer.length.toString(),
+    });
+
+    res.send(pdfBuffer);
   }
 }
