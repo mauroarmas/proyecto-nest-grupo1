@@ -32,10 +32,10 @@ export class UsersService {
         throw new BadRequestException(translate(this.i18n, 'messages.invalidLastName'));
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(newUser.email)) {
-        throw new BadRequestException(translate(this.i18n, 'messages.invalidEmail'));
-      }
+      // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // if (!emailRegex.test(newUser.email)) {
+      //   throw new BadRequestException(translate(this.i18n, 'messages.invalidEmail'));
+      // }
 
       const email = newUser.email.toString().toLowerCase();
       const findEmail = await this.prisma.user.findUnique({
@@ -293,17 +293,20 @@ export class UsersService {
 
     const users = await this.excelService.readExcel(buffer);
 
+    // console.log(JSON.stringify(users, null, 2));
+
     const requiredFields = [
-      'email',
       'name',
       'lastName',
+      'email',
       'phone',
       'address',
       'password',
     ];
     const invalidUsers = users.filter((user) =>
-      requiredFields.some((field) => !user[field]),
+      requiredFields.some((field) => !user[field] || user[field] === null || user[field] === undefined || user[field].toString().trim() === '')
     );
+    
 
     if (invalidUsers.length > 0) {
       return {
@@ -319,7 +322,8 @@ export class UsersService {
       select: { email: true },
     });
 
-    const saltRounds = parseInt(process.env.HASH_SALT_ROUND, 10);
+    const saltRounds = parseInt(process.env.HASH_SALT_ROUND || '10', 10);
+
     if (isNaN(saltRounds)) {
       throw new BadRequestException('HASH_SALT_ROUND must be a valid number');
     }
@@ -336,8 +340,13 @@ export class UsersService {
             throw new BadRequestException('Password must be a string');
           }
           return {
-            ...user,
-            password: await bcrypt.hash(password, saltRounds),
+            name: user.name,
+            lastName: user.lastName, 
+            email: user.email,
+            phone: user.phone,
+            address: user.address,
+            profileimg: user.profileimg,
+            password: await bcrypt.hash(password, saltRounds),    
           }
         }),
     );
@@ -359,8 +368,8 @@ export class UsersService {
       };
     }
     return {
-      users,
       message: translate(this.i18n, 'messages.uploadUsers'),
+      usersToCreate,
     };
   }
 }
