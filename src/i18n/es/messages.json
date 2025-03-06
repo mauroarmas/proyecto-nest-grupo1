@@ -63,6 +63,7 @@
         "notSupplier": "Las categorias del producto {value} no coinciden con las del proveedor seleccionado"
     },
     "cart": {
-        "quantityZero": "La cantidad del producto {product} no puede ser 0"
+        "quantityZero": "La cantidad del producto {product} no puede ser 0",
+        "unauthorized": "No tienes permiso para eliminar este carrito"
     }
 }
