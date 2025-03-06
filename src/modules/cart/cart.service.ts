@@ -240,13 +240,12 @@ export class CartService {
                         });
                     }
                 } catch (error) {
-                    console.error(`Error enviando email para el carrito ${cart.id}:`, error);
+
                 }
             }));
 
             return carts;
         } catch (error) {
-            console.error('Error en checkStatus:', error);
             throw error;
         }
     }
@@ -292,8 +291,8 @@ export class CartService {
 
             return expiredCarts;
         } catch (error) {
-            console.error('Error cancelando carritos expirados:', error);
-            throw error;
+
+            throw new error;
         }
     }
 
@@ -323,11 +322,11 @@ export class CartService {
         });
 
         if (!cart) {
-            throw new NotFoundException('Carrito no encontrado');
+            throw new NotFoundException(translate(this.i18n, 'messages.cartNotFound'));
         }
 
         if (cart.userId !== userId) {
-            throw new UnauthorizedException('No tienes permiso para eliminar este carrito');
+            throw new UnauthorizedException(translate(this.i18n, 'messages.unauthorized'));
         }
 
         const updatedCart = await this.prisma.cart.update({
