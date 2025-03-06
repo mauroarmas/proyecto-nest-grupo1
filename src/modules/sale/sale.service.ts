@@ -1,4 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ChartService } from './../chart/chart.service';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from 'nestjs-i18n';
@@ -14,6 +15,8 @@ import { generateBillPDF } from '../printer/documents/index';
 import { MessagingService } from '../messaging/messaging.service';
 import { getMessagingConfig } from 'src/common/constants';
 import { ConfigService } from '@nestjs/config';
+import { generatePDF, generatePDFincomes } from '../printer/documents/sample.report';
+import { ChartConfiguration } from 'chart.js';
 
 @Injectable()
 export class SaleService {
@@ -24,6 +27,7 @@ export class SaleService {
     private readonly printerService: PrinterService,
     private messagingService: MessagingService,
     private configService: ConfigService,
+    private chartService: ChartService
   ) {}
 
   async create(createSaleDto: CreateSaleDto, res: Response) {
@@ -287,4 +291,104 @@ export class SaleService {
     );
     res.send(pdfBuffer);
   }
+
+  async incomesByDatePDF (pagination: PaginationArgs): Promise<Buffer>{
+    const {  startDate, endDate, date } = pagination || {};
+    const dateObj = new Date(date);
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+
+     // Validaciones
+  if (startDate && isNaN(Date.parse(startDate))) {
+    throw new BadRequestException('Fecha de inicio inválida');
+  }
+  if (endDate && isNaN(Date.parse(endDate))) {
+    throw new BadRequestException('Fecha de fin inválida');
+  }
+  if (date && isNaN(Date.parse(date))) {
+    throw new BadRequestException('Fecha única inválida');
+  }
+
+    const sales = await this.prisma.sale.findMany({
+        where: {
+          isDeleted: false,
+          ...(startDate &&
+            endDate && {
+              createdAt: {
+                gte: new Date(startDateObj.setUTCHours(0, 0, 0, 0)),
+                lte: new Date(endDateObj.setUTCHours(23, 59, 59, 999)),
+              },
+            }),
+          ...(date && {
+            createdAt: {
+              gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
+              lte: new Date(dateObj.setUTCHours(23, 59, 59, 999)),
+            },
+          })
+        },
+        select:{ id: true, createdAt: true, cart: true },
+      });
+
+
+      if (!sales.length) {
+        throw new HttpException('Venta no encontrada', 404);
+      }
+    const groupedByDate = {};
+    
+    sales.forEach((sale) => {
+      const date = sale.createdAt.toISOString().split('T')[0];
+      if (!groupedByDate[date]) {
+        groupedByDate[date] = 0;
+      }
+      groupedByDate[date] += Number(sale.cart.total);
+    });
+    const labels = Object.keys(groupedByDate);
+    const data = Object.values(groupedByDate);
+    const total = data.reduce((a, b) => Number(a) + Number(b), 0);
+    const salesData = Object.entries(groupedByDate).map(([date, total]) => ({
+      date,
+      total: Number(total),
+    }));
+
+    const chartData = {
+      labels,
+      datasets: [
+        {
+          label: `Monto Total de Compras $${total}`,
+          data,
+          backgroundColor: '#36A2EB',
+        },
+      ],
+    };
+
+    const chartOptions: ChartConfiguration['options'] = {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: {
+          display: true,
+          text: 'Compras por Fecha',
+        },
+      },
+    };
+
+    const chartBuffer = await this.chartService.generateChart(
+      'bar',
+      chartData,
+      chartOptions,
+    );
+
+      const pdfDefinition = await generatePDFincomes(chartBuffer, salesData);
+
+      const pdfDoc = await this.printerService.createPdf(pdfDefinition)
+
+      return new Promise((resolve, reject) => {
+        const chunks: Uint8Array[] = [];
+        pdfDoc.on('data', (chunk) => chunks.push(chunk));
+        pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+        pdfDoc.on('error', reject);
+        pdfDoc.end();
+      });
+    }
 }
