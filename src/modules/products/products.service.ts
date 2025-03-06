@@ -63,7 +63,6 @@ export class ProductsService {
       );
     }
 
-    // CREA PRODUCTOS SIN IMAGENES POR EL MOMENTO!!
     return this.prisma.product.create({
       data: {
         name,
