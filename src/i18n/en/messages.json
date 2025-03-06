@@ -36,6 +36,7 @@
     "mountOfImages": "The maximum number of images has been exceeded (5)",
     "noFilesUploaded": "No files uploaded",
     "ProductDeleted": "Product deleted successfully",
+    "productAlreadyExists":"This product already exists",
     "genderInexistent": "Gender does not exist",
     "categoryInexistentWithName": "The category {name} does not exist",
     "categoriesEmpty": "There are no registered categories for {name}, register at least one category",

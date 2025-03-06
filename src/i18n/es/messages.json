@@ -36,6 +36,7 @@
     "mountOfImages": "Se ha superado el número máximo de imágenes permitidas (5)",
     "noFilesUploaded": "No se han cargado archivos",
     "ProductDeleted": "Producto eliminado con éxito",
+    "productAlreadyExists":"Este producto ya existe",
     "genderInexistent": "El género no existe",
     "categoryInexistentWithName": "La categoria {name} no existe",
     "categoriesEmpty": "No hay categorias registradas para {name}, registre al menos una categoria",

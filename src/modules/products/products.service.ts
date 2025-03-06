@@ -38,27 +38,15 @@ export class ProductsService {
     const { name, price, stock, categoryIds, brandId, gender } = newProduct;
 
     const existingProduct = await this.prisma.product.findFirst({
-      where: { name },
+      where: {
+        name: { equals: name, mode: 'insensitive' },
+      },
     });
 
     if (existingProduct) {
-      if (price <= 0) {
-        throw new ConflictException(
-          this.i18n.translate('messages.invalidNumber'),
-        );
-      }
-
-      if (stock <= 0) {
-        throw new ConflictException(
-          this.i18n.translate('messages.invalidNumber'),
-        );
-      }
-      return this.prisma.product.update({
-        where: { id: existingProduct.id },
-        data: {
-          stock: existingProduct.stock + stock,
-        },
-      });
+      throw new ConflictException(
+        this.i18n.translate('messages.productAlreadyExists'),
+      );
     }
 
     const categories = await this.prisma.category.findMany({
@@ -76,7 +64,7 @@ export class ProductsService {
         name,
         price,
         stock,
-        gender: gender,
+        gender,
         brandId,
         categories: { create: categoryIds.map((id) => ({ categoryId: id })) },
       },
@@ -177,8 +165,13 @@ export class ProductsService {
 
     const { categoryIds, ...updateData } = updateProductDto;
 
-    const categories = await this.prisma.category.findMany({
-      where: { id: { in: categoryIds } },
+    const filteredUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined && value !== null)
+    );
+
+    return this.prisma.product.update({
+      where: { id },
+      data: filteredUpdateData,
     });
   }
 
@@ -436,5 +429,4 @@ export class ProductsService {
 
     return bestSeller;
   }
-
 }
