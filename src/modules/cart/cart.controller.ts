@@ -11,7 +11,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 @ApiTags('Cart')
 @Controller('cart')
 export class CartController {
-  constructor(private readonly cartService: CartService) {}
+  constructor(private readonly cartService: CartService) { }
 
   @Roles(RoleEnum.USER)
   @Post()
@@ -51,7 +51,7 @@ export class CartController {
   }
 
   @Roles(RoleEnum.SUPERADMIN)
-  @ApiOperation({ summary: 'Get all pending carts' }) 
+  @ApiOperation({ summary: 'Get all pending carts' })
   @ApiResponse({ status: 200, description: 'Pending carts retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Pending carts not found' })
   @Get('/pending-carts')

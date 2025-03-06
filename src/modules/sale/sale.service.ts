@@ -30,7 +30,7 @@ export class SaleService {
     private messagingService: MessagingService,
     private configService: ConfigService,
     private readonly chartService: ChartService,
-  ) {}
+  ) { }
 
   async create(createSaleDto: CreateSaleDto, res: Response) {
     try {
@@ -80,10 +80,9 @@ export class SaleService {
   async findAll(pagination: PaginationArgs) {
     try {
       const { search, startDate, endDate, date } = pagination;
-  
-      // Filtros de fecha corregidos
+
       let dateFilter: Prisma.SaleWhereInput = {};
-  
+
       if (startDate && endDate) {
         dateFilter.createdAt = {
           gte: new Date(`${startDate}T00:00:00.000Z`),
@@ -92,13 +91,13 @@ export class SaleService {
       } else if (date) {
         const startOfDay = new Date(`${date}T00:00:00.000Z`);
         const endOfDay = new Date(`${date}T23:59:59.999Z`);
-  
+
         dateFilter.createdAt = {
           gte: startOfDay,
           lte: endOfDay,
         };
       }
-  
+
       const where: Prisma.SaleWhereInput = {
         isDeleted: false,
         ...dateFilter,
@@ -113,23 +112,23 @@ export class SaleService {
           ],
         }),
       };
-  
+
       const baseQuery = {
         where,
         ...getPaginationFilter(pagination),
         include: { cart: true },
       };
-  
+
       const total = await this.prisma.sale.count({ where });
       const sales = await this.prisma.sale.findMany(baseQuery);
       const res = paginate(sales, total, pagination);
-  
+
       return res;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-  
+
       throw new HttpException(
         await this.i18n.translate('messages.serverError', {
           args: { error: error.message },
@@ -138,7 +137,7 @@ export class SaleService {
       );
     }
   }
-  
+
 
   async findOne(id: string) {
     try {
@@ -256,15 +255,14 @@ export class SaleService {
         },
       },
     });
-  
+
     if (!sale) {
       throw new HttpException('Venta no encontrada', HttpStatus.NOT_FOUND);
     }
-  
+
     const docDefinition = await generateBillPDF(sale, sale.cart);
     const pdfDoc = await this.printerService.createPdf(docDefinition);
-  
-    // Convertir PDF a Buffer para adjuntarlo
+
     const pdfBuffer: Buffer = await new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
       pdfDoc.on('data', (chunk) => chunks.push(chunk));
@@ -272,8 +270,7 @@ export class SaleService {
       pdfDoc.on('error', reject);
       pdfDoc.end();
     });
-  
-    // Enviar el PDF como archivo adjunto por email
+
     if (email) {
       const messagingConfig = getMessagingConfig(this.configService);
       await this.messagingService.sendBillSale({
@@ -290,8 +287,7 @@ export class SaleService {
         ],
       });
     }
-  
-    // Enviar el PDF como respuesta HTTP
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
@@ -308,7 +304,6 @@ export class SaleService {
       include: { cart: true },
     });
 
-    // console.log(purchases);
     const groupedByDate = {};
 
     sales.forEach((sale) => {
@@ -365,6 +360,4 @@ export class SaleService {
       pdfDoc.end();
     });
   }
-
-
 }

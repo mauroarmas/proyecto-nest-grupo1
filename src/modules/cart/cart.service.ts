@@ -8,14 +8,13 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CartService {
-    constructor(private readonly prisma: PrismaService, 
+    constructor(private readonly prisma: PrismaService,
         private readonly messagingService: MessagingService,
-        private configService: ConfigService) {}
+        private configService: ConfigService) { }
 
     async createCart(createCartDto: CreateCartDto, userId: string) {
         const { cartLines } = createCartDto;
 
-        //verificar si el usuario ya tiene un carrito activo
         const activeCart = await this.prisma.cart.findFirst({
             where: {
                 userId,
@@ -27,14 +26,13 @@ export class CartService {
             }
         });
 
-        //verificar productos
         const products = await this.prisma.product.findMany({
             where: {
                 id: { in: cartLines.map((cartLine) => cartLine.productId) },
             },
         });
 
-        const missingProducts = cartLines.filter((cartLine) => 
+        const missingProducts = cartLines.filter((cartLine) =>
             !products.some((product) => product.id === cartLine.productId)
         );
 
@@ -42,7 +40,6 @@ export class CartService {
             throw new BadRequestException(`Productos no encontrados: ${missingProducts.map(p => p.productId).join(', ')}`);
         }
 
-        //verificar stock
         const stockErrors = cartLines.map((cartLine) => {
             const product = products.find((p) => p.id === cartLine.productId);
             if (product.stock < cartLine.quantity) {
@@ -57,7 +54,7 @@ export class CartService {
         }).filter(error => error !== null);
 
         if (stockErrors.length > 0) {
-            const errorMessages = stockErrors.map(error => 
+            const errorMessages = stockErrors.map(error =>
                 `El producto "${error.productName}" (ID: ${error.productId}) solo tiene ${error.availableStock} unidades disponibles y estás solicitando ${error.requestedQuantity}`
             );
             throw new BadRequestException({
@@ -66,7 +63,6 @@ export class CartService {
             });
         }
 
-        //si existe un carrito activo, añadir productos a ese carrito
         if (activeCart) {
             return await this.prisma.$transaction(async (prisma) => {
                 for (const cartLine of cartLines) {
@@ -75,8 +71,8 @@ export class CartService {
                         line => line.productId === cartLine.productId
                     );
 
-                    const totalQuantity = existingLine 
-                        ? existingLine.quantity + cartLine.quantity 
+                    const totalQuantity = existingLine
+                        ? existingLine.quantity + cartLine.quantity
                         : cartLine.quantity;
 
                     if (product.stock < totalQuantity) {
@@ -105,7 +101,6 @@ export class CartService {
                         });
                     }
 
-                    //actualizar stock
                     await prisma.product.update({
                         where: { id: cartLine.productId },
                         data: {
@@ -116,14 +111,12 @@ export class CartService {
                     });
                 }
 
-                //recalcular total del carrito
                 const updatedCartLines = await prisma.cartLine.findMany({
                     where: { cartId: activeCart.id }
                 });
 
                 const newTotal = updatedCartLines.reduce((acc, line) => acc + line.subtotal, 0);
 
-                //actualizar carrito
                 return await prisma.cart.update({
                     where: { id: activeCart.id },
                     data: { total: newTotal },
@@ -138,13 +131,12 @@ export class CartService {
             });
         }
 
-        //si no hay carrito activo, crear uno nuevo
         return await this.prisma.$transaction(async (prisma) => {
             const newCart = await prisma.cart.create({
                 data: {
                     userId,
                     status: "pending",
-                    total: cartLines.reduce((acc, cartLine) => 
+                    total: cartLines.reduce((acc, cartLine) =>
                         acc + cartLine.quantity * products.find(
                             (product) => product.id === cartLine.productId
                         ).price, 0
@@ -168,7 +160,6 @@ export class CartService {
                 }
             });
 
-            //actualizar stock de productos
             for (const cartLine of cartLines) {
                 await prisma.product.update({
                     where: { id: cartLine.productId },
@@ -184,7 +175,6 @@ export class CartService {
         });
     }
 
-    //verificar si hay carritos pendientes y enviar email
     @Cron(CronExpression.EVERY_2_HOURS)
     async checkStatus() {
         try {
@@ -200,7 +190,7 @@ export class CartService {
             });
 
 
-            if(carts.length === 0) {
+            if (carts.length === 0) {
                 return [];
             }
 
@@ -235,12 +225,11 @@ export class CartService {
     @Cron(CronExpression.EVERY_3_HOURS)
     async cancelExpiredCarts() {
         try {
-            //buscar carritos que fueron notificados hace más de 3 horas
             const expiredCarts = await this.prisma.cart.findMany({
                 where: {
                     status: 'pending',
                     notifiedAt: {
-                        lt: new Date(Date.now() - 1 * 60 * 60 * 1000) // 1 hora
+                        lt: new Date(Date.now() - 1 * 60 * 60 * 1000)
                     },
                     isDeleted: false
                 },
@@ -251,7 +240,6 @@ export class CartService {
 
             for (const cart of expiredCarts) {
                 await this.prisma.$transaction(async (prisma) => {
-                    //devolver stock 
                     for (const line of cart.cartLines) {
                         await prisma.product.update({
                             where: { id: line.productId },
@@ -263,7 +251,6 @@ export class CartService {
                         });
                     }
 
-                    //is deleted true y status cancelled
                     await prisma.cart.update({
                         where: { id: cart.id },
                         data: {
@@ -283,10 +270,10 @@ export class CartService {
 
     async getCartsByUser(userId: string) {
         const carts = await this.prisma.cart.findMany({
-            where: { 
-                userId, 
-                status: 'pending', 
-                isDeleted: false 
+            where: {
+                userId,
+                status: 'pending',
+                isDeleted: false
             },
             include: {
                 cartLines: {
@@ -301,7 +288,6 @@ export class CartService {
     }
 
     async deleteCart(cartId: string, userId: string) {
-        // Verificar que el carrito pertenece al usuario
         const cart = await this.prisma.cart.findUnique({
             where: { id: cartId },
             include: { cartLines: true }
@@ -320,7 +306,6 @@ export class CartService {
             data: { isDeleted: true, status: 'cancelled' }
         });
 
-        //devolver stock de productos
         for (const line of cart.cartLines) {
             await this.prisma.product.update({
                 where: { id: line.productId },

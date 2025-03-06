@@ -22,7 +22,7 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('sale')
 export class SaleController {
-  constructor(private readonly saleService: SaleService) {}
+  constructor(private readonly saleService: SaleService) { }
 
   @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @Post()
@@ -34,7 +34,7 @@ export class SaleController {
   create(@Body() createSaleDto: CreateSaleDto, @Res() res: Response) {
     return this.saleService.create(createSaleDto, res);
   }
-  
+
 
   @Roles(RoleEnum.SUPERADMIN)
   @Get()

@@ -32,7 +32,7 @@ export class ProductsService {
     private readonly suppliersService: SuppliersService,
     private readonly chartService: ChartService,
     private readonly printerService: PrinterService,
-  ) {}
+  ) { }
 
   async create(newProduct: CreateProductDto) {
     const { name, price, stock, categoryIds, brandId, gender } = newProduct;
@@ -119,11 +119,11 @@ export class ProductsService {
         }),
         ...(startDate &&
           endDate && {
-            createdAt: {
-              gte: new Date(startDate),
-              lte: new Date(endDate),
-            },
-          }),
+          createdAt: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+        }),
         ...(date && {
           createdAt: {
             gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
@@ -340,7 +340,7 @@ export class ProductsService {
       } else {
         const product = await this.prisma.product.create({
           data: {
-            name:nombre,
+            name: nombre,
             gender: genero,
             stock,
             price: priceFloat,
@@ -356,11 +356,11 @@ export class ProductsService {
     }
   }
 
-  
+
   async getBestSellerProductsChart(quantity: number): Promise<Buffer> {
     const bestSeller = await this.getMostPurchasedProducts(quantity);
 
-    const labels = bestSeller.map((bs) => bs.productName+' - $'+bs.totalRevenue);
+    const labels = bestSeller.map((bs) => bs.productName + ' - $' + bs.totalRevenue);
     const data = bestSeller.map((bs) => bs.sells);
 
     const chartData = {
@@ -426,12 +426,12 @@ export class ProductsService {
     const limitedProductsSum = productsSum.slice(0, quantity);
     let bestSeller = []
 
-    for(const p of limitedProductsSum){
+    for (const p of limitedProductsSum) {
       const product = await this.prisma.product.findUnique({
-        where: {id: p.productId}
+        where: { id: p.productId }
       })
 
-      bestSeller.push({productName: product.name, sells: p._sum.quantity, totalRevenue: p._sum.subtotal})
+      bestSeller.push({ productName: product.name, sells: p._sum.quantity, totalRevenue: p._sum.subtotal })
     }
 
     return bestSeller;

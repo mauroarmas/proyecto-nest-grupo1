@@ -69,7 +69,7 @@ export class AwsService {
     }
   }
 
-  async deleteFile (fileKey: string) {
+  async deleteFile(fileKey: string) {
     try {
       await this.s3Client.send(
         new DeleteObjectCommand({
@@ -81,5 +81,5 @@ export class AwsService {
     } catch (error) {
       this.logger.error(`Error deleting file`, (error as Error).stack);
     }
-}
+  }
 }

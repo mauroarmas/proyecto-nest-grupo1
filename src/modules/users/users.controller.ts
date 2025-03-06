@@ -28,9 +28,9 @@ import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
-  @Roles(RoleEnum.SUPERADMIN,RoleEnum.USER)
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @ApiOperation({ summary: 'Create a new user' })
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({ status: 201, description: 'User created successfully' })
@@ -97,7 +97,7 @@ export class UsersController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
   @Post('profile-img')
-  @UseInterceptors(FileInterceptor('file',{limits: { fileSize: 5 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Req() req,
@@ -112,7 +112,7 @@ export class UsersController {
 
     return {
       profileImg: result.user.profileImg,
-      message: result.message, 
+      message: result.message,
     };
   }
 

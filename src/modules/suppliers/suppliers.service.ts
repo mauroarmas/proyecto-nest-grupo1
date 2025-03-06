@@ -17,7 +17,7 @@ export class SuppliersService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
     private readonly excelService: ExcelService,
-  ) {}
+  ) { }
 
   async create(createSupplierDto: CreateSupplierDto) {
     try {
@@ -105,11 +105,11 @@ export class SuppliersService {
           ],
           ...(startDate &&
             endDate && {
-              createdAt: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-              },
-            }),
+            createdAt: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }),
           ...(date && {
             createdAt: {
               gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
@@ -220,8 +220,8 @@ export class SuppliersService {
 
         await this.prisma.categorySupplier.createMany({
           data: categories.map((category) => ({
-            supplierId: id, // Agregar supplierId manualmente
-            categoryId: category.id, // Corregir cómo se pasan los IDs
+            supplierId: id,
+            categoryId: category.id,
           })),
         });
       }
@@ -400,7 +400,7 @@ export class SuppliersService {
             HttpStatus.NOT_FOUND,
           );
         }
-      
+
         const taxId = row.cuit.toString();
 
         let existingSupplier = await this.prisma.supplier.findFirst({
@@ -409,7 +409,7 @@ export class SuppliersService {
           },
         });
 
-        const categoriesArray = categorias ? categorias.split(',') || [] : []; // converitir a array
+        const categoriesArray = categorias ? categorias.split(',') || [] : [];
         if (categoriesArray.length === 0) {
           throw new HttpException(
             await this.i18n.translate('messages.categoriesEmpty', {
@@ -440,7 +440,7 @@ export class SuppliersService {
         }
 
         const categoriesObject =
-          await this.validateAndFormatCategories(categoryIds); //convertir objeto
+          await this.validateAndFormatCategories(categoryIds);
 
         if (existingSupplier) {
           await this.prisma.categorySupplier.deleteMany({
@@ -450,8 +450,8 @@ export class SuppliersService {
           });
           await this.prisma.categorySupplier.createMany({
             data: categoriesObject.map((category) => ({
-              supplierId: existingSupplier.id, // Agregar supplierId manualmente
-              categoryId: category.id, // Corregir cómo se pasan los IDs
+              supplierId: existingSupplier.id,
+              categoryId: category.id,
             })),
           });
 
@@ -465,10 +465,10 @@ export class SuppliersService {
 
           const supplier = await this.prisma.supplier.create({
             data: {
-              phone:telefono,
+              phone: telefono,
               email,
               taxId,
-              name:nombre,
+              name: nombre,
               categories: {
                 create: categoriesObject.map((category) => ({
                   category: { connect: { id: category.id } },

@@ -9,4 +9,4 @@ import { ExcelModule } from '../excel/excel.module';
   providers: [SuppliersService],
   exports: [SuppliersService],
 })
-export class SuppliersModule {}
+export class SuppliersModule { }

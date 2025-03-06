@@ -7,7 +7,7 @@ export class RecoverPasswordDto {
     example: 'usuario@ejemplo.com',
     description: 'User email'
   })
-  @IsEmail({},{ message: i18nValidationMessage('errors.isEmail') })
+  @IsEmail({}, { message: i18nValidationMessage('errors.isEmail') })
   @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
   email: string;
 }

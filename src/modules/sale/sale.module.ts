@@ -11,4 +11,4 @@ import { ChartModule } from '../chart/chart.module';
   controllers: [SaleController],
   providers: [SaleService],
 })
-export class SaleModule {}
+export class SaleModule { }

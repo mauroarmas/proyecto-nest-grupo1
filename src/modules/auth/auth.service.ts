@@ -24,7 +24,7 @@ export class AuthService {
     private messagingService: MessagingService,
     private readonly i18n: I18nService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async register(user: CreateUserDto) {
     try {

@@ -1,4 +1,5 @@
 import type { StyleDictionary, TDocumentDefinitions } from 'pdfmake/interfaces';
+
 const styles: StyleDictionary = {
     header: {
         fontSize: 16,

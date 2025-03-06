@@ -29,7 +29,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('Suppliers')
 @Controller('suppliers')
 export class SuppliersController {
-  constructor(private readonly suppliersService: SuppliersService) {}
+  constructor(private readonly suppliersService: SuppliersService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a new supplier' })

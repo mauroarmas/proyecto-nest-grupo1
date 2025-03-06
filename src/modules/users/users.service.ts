@@ -21,7 +21,7 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly excelService: ExcelService,
     private readonly i18n: I18nService,
-  ) {}
+  ) { }
   async create(newUser: CreateUserDto) {
     try {
       const nameRegex = /^[a-zA-Z\s]+$/;
@@ -68,7 +68,7 @@ export class UsersService {
 
   async updateProfile(id: string, updateProfileDto: UpdateUserDto) {
     try {
-      const findUser = await this.prisma.user.findUnique({ where: { id }, include: { profile: true }});
+      const findUser = await this.prisma.user.findUnique({ where: { id }, include: { profile: true } });
       if (!findUser) {
         throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
@@ -114,11 +114,11 @@ export class UsersService {
           ],
           ...(startDate &&
             endDate && {
-              createdAt: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-              },
-            }),
+            createdAt: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }),
           ...(date && {
             createdAt: {
               gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
@@ -336,10 +336,11 @@ export class UsersService {
           if (typeof password !== 'string') {
             throw new BadRequestException('Password must be a string');
           }
-          return{
-          ...user,
-          password: await bcrypt.hash(password, saltRounds),
-        }}),
+          return {
+            ...user,
+            password: await bcrypt.hash(password, saltRounds),
+          }
+        }),
     );
 
     if (usersToCreate.length > 0) {

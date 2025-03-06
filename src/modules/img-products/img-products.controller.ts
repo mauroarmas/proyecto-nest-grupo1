@@ -22,7 +22,7 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 @Roles(RoleEnum.SUPERADMIN)
 @Controller('img-products')
 export class ImgProductsController {
-  constructor(private readonly imgProductsService: ImgProductsService) {}
+  constructor(private readonly imgProductsService: ImgProductsService) { }
 
   @ApiOperation({ summary: 'Upload image product' })
   @ApiResponse({ status: 200, description: 'Image product uploaded successfully' })
