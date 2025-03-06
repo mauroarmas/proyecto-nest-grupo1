@@ -32,6 +32,7 @@
     "duplicateBrand": "Ya existe una marca con ese nombre",
     "brandNotFound": "Marca no encontrada",
     "ProductNotFound": "Producto no encontrado",
+    "ProductNotFoundWithNames": "Productos no encontrados: {products}",
     "invalidNumber": "El valor debe ser un número positivo",
     "cartNotFound": "Carrito no encontrado",
     "saleCreated": "Venta creada con éxito",
@@ -45,6 +46,8 @@
     "categoriesEmpty": "No hay categorias registradas para {name}, registre al menos una categoria",
     "incompletedFields": "Existen campos incompletos",
     "existingMail": "El correo ya está en uso",
+    "stockInsufficient": "Stock insuficiente para el producto {product}, cantidad solicitada: {quantity}, stock disponible: {stock}",
+    "stockError": "Stock insuficiente",
     "supplier": {
         "existingMail": "El correo ya está en uso",
         "existingTaxId": "El taxId (CUIT) ya está en uso",
@@ -58,5 +61,8 @@
     "purchase": {
         "created": "Compra creada con éxito",
         "notSupplier": "Las categorias del producto {value} no coinciden con las del proveedor seleccionado"
+    },
+    "cart": {
+        "quantityZero": "La cantidad del producto {product} no puede ser 0"
     }
 }

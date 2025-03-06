@@ -13,5 +13,6 @@
     "isNumber": "{property} debe ser un número válido",
     "isOptional": "{property} es opcional",
     "isPhoneNumber": "El número de teléfono debe ser válido",
-    "isArray": "{property} debe ser un arreglo"
+    "isArray": "{property} debe ser un arreglo",
+    "arrayMinSize": "El carrito debe tener al menos un producto"
 }

@@ -32,6 +32,7 @@
     "duplicateBrand": "A brand with that name already exists",
     "brandNotFound": "Brand not found",
     "ProductNotFound": "Product not found",
+    "ProductNotFoundWithNames": "Products not found: {products}",
     "invalidNumber": "The value must be a positive number",
     "cartNotFound": "Cart not found",
     "saleCreated": "Sale created successfully",
@@ -45,6 +46,8 @@
     "categoriesEmpty": "There are no registered categories for {name}, register at least one category",
     "incompletedFields": "There are incomplete fields",
     "existingMail": "The mail is already in use",
+    "stockInsufficient": "Insufficient stock for the product {product}, requested quantity: {quantity}, available stock: {stock}",
+    "stockError": "Insufficient stock",
     "supplier": {
         "created": "Supplier registered successfully",
         "existingMail": "The mail is already in use",
@@ -58,5 +61,8 @@
     "purchase": {
         "created": "Purchase created successfully",
         "notSupplier": "The categories of the product {value} do not match those of the selected supplier"
+    },
+    "cart": {
+        "quantityZero": "The quantity of the product {product} cannot be 0"
     }
 }
