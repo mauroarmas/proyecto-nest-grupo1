@@ -5,12 +5,16 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { MessagingService } from '../messaging/messaging.service';
 import { getMessagingConfig } from 'src/common/constants';
 import { ConfigService } from '@nestjs/config';
+import { I18nService } from 'nestjs-i18n';
+import { translate } from 'src/utils/translation';
 
 @Injectable()
 export class CartService {
     constructor(private readonly prisma: PrismaService,
         private readonly messagingService: MessagingService,
-        private configService: ConfigService) { }
+        private configService: ConfigService,
+        private i18n: I18nService
+    ) { }
 
     async createCart(createCartDto: CreateCartDto, userId: string) {
         const { cartLines } = createCartDto;
@@ -32,12 +36,22 @@ export class CartService {
             },
         });
 
+        // if(products.length === 0) {
+        //     throw new BadRequestException('No se encontraron productos');
+        // }
+
         const missingProducts = cartLines.filter((cartLine) =>
             !products.some((product) => product.id === cartLine.productId)
         );
 
         if (missingProducts.length > 0) {
-            throw new BadRequestException(`Productos no encontrados: ${missingProducts.map(p => p.productId).join(', ')}`);
+            throw new BadRequestException(
+                translate(this.i18n, 'messages.ProductNotFoundWithNames', {
+                    args: {
+                        products: missingProducts.map(p => p.productId).join(', ')
+                    }
+                })
+            );
         }
 
         const stockErrors = cartLines.map((cartLine) => {
@@ -50,15 +64,24 @@ export class CartService {
                     availableStock: product.stock
                 };
             }
+            if(cartLine.quantity === 0){
+                
+            }
             return null;
         }).filter(error => error !== null);
 
         if (stockErrors.length > 0) {
             const errorMessages = stockErrors.map(error =>
-                `El producto "${error.productName}" (ID: ${error.productId}) solo tiene ${error.availableStock} unidades disponibles y estás solicitando ${error.requestedQuantity}`
+                translate(this.i18n, 'messages.stockInsufficient', {
+                    args: {
+                        product: error.productName,
+                        stock: error.availableStock,
+                        quantity: error.requestedQuantity
+                    }
+                })
             );
             throw new BadRequestException({
-                message: 'Error de stock insuficiente',
+                message: translate(this.i18n, 'messages.stockError'),
                 details: errorMessages
             });
         }
@@ -77,8 +100,13 @@ export class CartService {
 
                     if (product.stock < totalQuantity) {
                         throw new BadRequestException(
-                            `No hay suficiente stock para el producto "${product.name}". ` +
-                            `Stock disponible: ${product.stock}, Cantidad total solicitada: ${totalQuantity}`
+                            translate(this.i18n, 'messages.stockInsufficient', {
+                                args: {
+                                    product: product.name,
+                                    stock: product.stock,
+                                    quantity: totalQuantity
+                                }
+                            })
                         );
                     }
 
