@@ -3,7 +3,7 @@ import { EMAIL_PROVIDER, EmailService } from './messaging.types';
 
 @Injectable()
 export class MessagingService {
-  constructor(@Inject(EMAIL_PROVIDER) private emailService: EmailService) {}
+  constructor(@Inject(EMAIL_PROVIDER) private emailService: EmailService) { }
 
   async sendRegisterUserEmail(input: { from: string; to: string }) {
     const { from, to } = input;
@@ -41,7 +41,7 @@ export class MessagingService {
 
   async sendBillSale(input: { from: string; to: string; subject: string; body: string; attachments: any[] }) {
     const { from, to, subject, body, attachments } = input;
-    
+
     await this.emailService.send({
       from,
       to,
@@ -50,5 +50,4 @@ export class MessagingService {
       attachments,
     });
   }
-  
 }

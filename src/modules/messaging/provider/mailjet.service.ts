@@ -11,10 +11,10 @@ export class MailjetService implements EmailService {
 
   constructor(private configService: ConfigService) {
     const messagingConfig = getMessagingConfig(this.configService);
-    
+
     this.logger.debug(`API Key: ${messagingConfig.apiKey}`);
     this.logger.debug(`Secret: ${messagingConfig.secret}`);
-    
+
     if (!messagingConfig.apiKey || !messagingConfig.secret) {
       throw new Error('Mailjet credentials are not configured properly');
     }
@@ -46,12 +46,12 @@ export class MailjetService implements EmailService {
             HTMLPart: body,
             Attachments: attachments
               ? attachments.map((attachment) => ({
-                  ContentType: 'application/pdf',
-                  Filename: attachment.filename,
-                  Base64Content: Buffer.from(attachment.content).toString('base64'),
+                ContentType: 'application/pdf',
+                Filename: attachment.filename,
+                Base64Content: Buffer.from(attachment.content).toString('base64'),
               }))
               : [],
-              
+
           },
         ],
       })

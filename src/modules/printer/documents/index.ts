@@ -49,7 +49,7 @@ export const generateBillPDF = async (
       color: '#43484C',
     },
     pageSize: 'A4',
-    pageMargins: [30, 25, 30, 80], 
+    pageMargins: [30, 25, 30, 80],
     footer: {
       stack: [
         {
@@ -60,7 +60,7 @@ export const generateBillPDF = async (
         }
       ],
     },
-    
+
     content: [
       {
         image: `data:image/png;base64,${base64Image}`,
@@ -127,6 +127,3 @@ export const generateBillPDF = async (
     },
   };
 };
-
-
-

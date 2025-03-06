@@ -5,4 +5,4 @@ import { ExcelService } from './excel.service';
   providers: [ExcelService],
   exports: [ExcelService],
 })
-export class ExcelModule {}
+export class ExcelModule { }

@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import * as bcrypt from 'bcrypt';
-import { BRAND, CATEGORIES, USERS } from "../src/utils/mock";
+import { BRAND, CATEGORIES, SUPPLIER, USERS } from "../src/utils/mock";
 import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
@@ -30,6 +30,14 @@ async function main() {
     }));
     await prisma.brand.createMany({
         data: brands,
+    });
+
+    const supplier: Prisma.SupplierCreateManyInput[] = SUPPLIER.map((supplier) => ({
+        ...supplier,
+        createdAt: faker.date.recent(),
+    }))
+    await prisma.supplier.createMany({
+        data: supplier,
     });
 }
 

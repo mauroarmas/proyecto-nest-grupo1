@@ -23,7 +23,7 @@ export const awsConfig = {
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
     region: env.AWS_REGION
   },
-  s3:{
+  s3: {
     bucket: env.AWS_BUCKET,
   },
   timeout: {
@@ -31,4 +31,3 @@ export const awsConfig = {
     socket: parseInt(env.AWS_SOCKET_TIMEOUT)
   }
 } as const
-

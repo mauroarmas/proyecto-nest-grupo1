@@ -11,14 +11,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Registrar un nuevo usuario' })
+  @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({ 
     status: 201, 
-    description: 'Usuario creado exitosamente',
+    description: 'User created successfully',
     schema: {
       properties: {
-        message: { type: 'string', example: 'Usuario creado con éxito' },
+        message: { type: 'string', example: 'User created successfully' },
         user: {
           type: 'object',
           properties: {
@@ -31,20 +31,20 @@ export class AuthController {
       }
     }
   })
-  @ApiResponse({ status: 400, description: 'El correo ya está en uso' })
+  @ApiResponse({ status: 400, description: 'The email is already in use' })
   async register(@Body() user: CreateUserDto) {
     return await this.authService.register(user);
   }
 
   @Post('login')
-  @ApiOperation({ summary: 'Iniciar sesión' })
+  @ApiOperation({ summary: 'Login' })
   @ApiBody({ type: LoginAuthDto })
   @ApiResponse({ 
     status: 200, 
-    description: 'Login exitoso',
+    description: 'Successful login',
     schema: {
       properties: {
-        message: { type: 'string', example: 'Bienvenido {name}' },
+        message: { type: 'string', example: 'Welcome {name}' },
         user: {
           type: 'object',
           properties: {
@@ -58,49 +58,49 @@ export class AuthController {
       }
     }
   })
-  @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() credentials: LoginAuthDto) {
     return await this.authService.login(credentials);
   }
 
   @Post('recovery-password')
-  @ApiOperation({ summary: 'Solicitar recuperación de contraseña' })
+  @ApiOperation({ summary: 'Request password recovery' })
   @ApiBody({ type: RecoverPasswordDto })
   @ApiResponse({ 
     status: 200, 
-    description: 'Email de recuperación enviado',
+    description: 'Email recovery sent',
     schema: {
       properties: {
-        message: { type: 'string', example: 'Se ha enviado un correo de recuperación' },
+        message: { type: 'string', example: 'An email to recover the password has been sent' },
         status: { type: 'number', example: 200 }
       }
     }
   })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async recoveryPassword(@Body() recoverDto: RecoverPasswordDto) {
     return await this.authService.recoveryPassword(recoverDto);
   }
 
   @Post('reset-password/:token')
-  @ApiOperation({ summary: 'Resetear contraseña usando token' })
+  @ApiOperation({ summary: 'Reset password using token' })
   @ApiParam({ 
     name: 'token', 
     required: true, 
-    description: 'Token JWT recibido por email' 
+    description: 'JWT token received by email' 
   })
   @ApiBody({ type: ResetPasswordDto })
   @ApiResponse({ 
     status: 200, 
-    description: 'Contraseña actualizada correctamente',
+    description: 'Password updated successfully',
     schema: {
       properties: {
-        message: { type: 'string', example: 'Contraseña actualizada correctamente' },
+        message: { type: 'string', example: 'Password updated successfully' },
         status: { type: 'number', example: 200 }
       }
     }
   })
-  @ApiResponse({ status: 401, description: 'Token inválido o expirado' })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired token' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async resetPassword(
     @Param('token') token: string,
     @Body() resetDto: ResetPasswordDto,

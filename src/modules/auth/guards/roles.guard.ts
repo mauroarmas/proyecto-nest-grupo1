@@ -5,7 +5,7 @@ import { RoleEnum } from 'src/common/constants';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoleEnums = this.reflector.getAllAndOverride<RoleEnum[]>(
@@ -13,7 +13,7 @@ export class RolesGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
     const { user } = context.switchToHttp().getRequest();
-    // Asegúrate de que user.role sea un array o un solo valor
-    return requiredRoleEnums.includes(user?.role); // Cambiar a esta línea si user.role es un solo valor
+
+    return requiredRoleEnums.includes(user?.role);
   }
 }

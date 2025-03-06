@@ -22,7 +22,7 @@ import { PaginationArgs } from 'src/utils/pagination/pagination.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('sale')
 export class SaleController {
-  constructor(private readonly saleService: SaleService) {}
+  constructor(private readonly saleService: SaleService) { }
 
   @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @Post()
@@ -34,7 +34,7 @@ export class SaleController {
   create(@Body() createSaleDto: CreateSaleDto, @Res() res: Response) {
     return this.saleService.create(createSaleDto, res);
   }
-  
+
 
   @Roles(RoleEnum.SUPERADMIN)
   @Get()
@@ -121,6 +121,24 @@ export class SaleController {
   })
   generatePDF(@Param('id') id: string, @Res() res: Response) {
     return this.saleService.getBill(id, res);
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @ApiOperation({ summary: 'Get sells report' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sales report generated successfully',
+  })
+  @Get('chart/bar')
+  async generateReport(@Res() res: Response): Promise<void> {
+    const pdfBuffer = await this.saleService.generateSellsBarChart();
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="sales_report.pdf"',
+      'Content-Length': pdfBuffer.length.toString(),
+    });
+
+    res.send(pdfBuffer);
   }
 
 }

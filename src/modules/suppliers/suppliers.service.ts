@@ -17,7 +17,7 @@ export class SuppliersService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
     private readonly excelService: ExcelService,
-  ) {}
+  ) { }
 
   async create(createSupplierDto: CreateSupplierDto) {
     try {
@@ -45,8 +45,6 @@ export class SuppliersService {
       const categories = await this.validateAndFormatCategories(
         createSupplierDto.categories || [],
       );
-
-      console.log('categories', categories);
 
       const supplier = await this.prisma.supplier.create({
         data: {
@@ -107,11 +105,11 @@ export class SuppliersService {
           ],
           ...(startDate &&
             endDate && {
-              createdAt: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-              },
-            }),
+            createdAt: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }),
           ...(date && {
             createdAt: {
               gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
@@ -222,8 +220,8 @@ export class SuppliersService {
 
         await this.prisma.categorySupplier.createMany({
           data: categories.map((category) => ({
-            supplierId: id, // Agregar supplierId manualmente
-            categoryId: category.id, // Corregir cómo se pasan los IDs
+            supplierId: id,
+            categoryId: category.id,
           })),
         });
       }
@@ -255,11 +253,10 @@ export class SuppliersService {
   }
 
   async remove(id: string) {
-    try{
-
+    try {
       const findSupplier = await this.prisma.supplier.findUnique({
         where: { id, isDeleted: false },
-      })
+      });
 
       if (!findSupplier) {
         throw new HttpException(
@@ -271,10 +268,10 @@ export class SuppliersService {
       await this.prisma.supplier.update({
         where: { id },
         data: { isDeleted: true },
-      })
+      });
 
       return { message: translate(this.i18n, 'messages.supplier.deleted') };
-    }catch(error){
+    } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -304,7 +301,7 @@ export class SuppliersService {
           select: { name: true },
         });
 
-        categoriesNames.push(categories.map((cat) => cat.name).join(', '));
+        categoriesNames.push(categories.map((cat) => cat.name).join(','));
       }
 
       const data = suppliers.map((supplier, index) => ({
@@ -345,7 +342,7 @@ export class SuppliersService {
     }
   }
 
-  private async validateAndFormatCategories(categoryIds: string[]) {
+  async validateAndFormatCategories(categoryIds: string[]) {
     try {
       if (!categoryIds || categoryIds.length === 0) {
         return [];
@@ -396,8 +393,15 @@ export class SuppliersService {
       const rows = await this.excelService.readExcel(file.buffer);
 
       for (const row of rows) {
-        const { name, email, phone, categories } = row;
-        const taxId = row.taxid.toString();
+        const { nombre, email, telefono, categorias, cuit } = row;
+        if (!nombre || !email || !telefono || !categorias || !cuit) {
+          throw new HttpException(
+            await this.i18n.translate('messages.incompletedFields'),
+            HttpStatus.NOT_FOUND,
+          );
+        }
+
+        const taxId = row.cuit.toString();
 
         let existingSupplier = await this.prisma.supplier.findFirst({
           where: {
@@ -405,7 +409,15 @@ export class SuppliersService {
           },
         });
 
-        const categoriesArray = categories ? categories.split(',') || [] : []; // converitir a array
+        const categoriesArray = categorias ? categorias.split(',') || [] : [];
+        if (categoriesArray.length === 0) {
+          throw new HttpException(
+            await this.i18n.translate('messages.categoriesEmpty', {
+              args: { nombre },
+            }),
+            HttpStatus.NOT_FOUND,
+          );
+        }
         const categoryIds = await Promise.all(
           categoriesArray.map(async (category) => {
             const categoryRecord = await this.prisma.category.findFirst({
@@ -413,13 +425,24 @@ export class SuppliersService {
             });
             return categoryRecord?.id;
           }),
-        ); //convertir a IDS
+        );
+        for (let i = 0; i < categoryIds.length; i++) {
+          const category = categoryIds[i];
 
-        const categoriesObject = await this.validateAndFormatCategories(categoryIds); //convertir objeto
+          if (!category) {
+            throw new HttpException(
+              await this.i18n.translate('messages.categoryInexistentWithName', {
+                args: { name: categoriesArray[i] },
+              }),
+              HttpStatus.NOT_FOUND,
+            );
+          }
+        }
 
+        const categoriesObject =
+          await this.validateAndFormatCategories(categoryIds);
 
         if (existingSupplier) {
-          
           await this.prisma.categorySupplier.deleteMany({
             where: {
               supplierId: existingSupplier.id,
@@ -427,25 +450,25 @@ export class SuppliersService {
           });
           await this.prisma.categorySupplier.createMany({
             data: categoriesObject.map((category) => ({
-              supplierId: existingSupplier.id, // Agregar supplierId manualmente
-              categoryId: category.id, // Corregir cómo se pasan los IDs
+              supplierId: existingSupplier.id,
+              categoryId: category.id,
             })),
           });
-
 
           const supplier = await this.prisma.supplier.update({
             where: { id: existingSupplier.id },
             data: existingSupplier,
             include: { categories: true },
           });
-        }else{
-
-          const { categories, taxid, ...supplierData } = row;
+        } else {
+          // const { categorias, taxid, nombre, ...supplierData } = row;
 
           const supplier = await this.prisma.supplier.create({
             data: {
-              ...supplierData,
+              phone: telefono,
+              email,
               taxId,
+              name: nombre,
               categories: {
                 create: categoriesObject.map((category) => ({
                   category: { connect: { id: category.id } },
@@ -456,7 +479,7 @@ export class SuppliersService {
         }
       }
 
-      return { message: 'Suppliers loaded successfully' };
+      return { message: translate(this.i18n, 'messages.supplier.uploaded') };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

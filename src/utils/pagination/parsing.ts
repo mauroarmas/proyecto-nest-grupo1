@@ -1,5 +1,5 @@
 export function paginate(data, total, pagination) {
-    const {page, perPage} = pagination;
+    const { page, perPage } = pagination;
 
     const cantPages = Math.ceil(total / perPage);
 

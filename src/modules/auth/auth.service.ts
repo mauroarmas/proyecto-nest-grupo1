@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginAuthDto } from './dto/login.dto';
@@ -19,10 +24,12 @@ export class AuthService {
     private messagingService: MessagingService,
     private readonly i18n: I18nService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async register(user: CreateUserDto) {
     try {
+      const userEmail = user.email.toString().toLowerCase();
+      user.email = userEmail;
       const findUser = await this.prisma.user.findUnique({
         where: {
           email: user.email,
@@ -32,7 +39,7 @@ export class AuthService {
       if (findUser) {
         throw new HttpException(
           await this.i18n.translate('messages.existingMail'),
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
@@ -40,6 +47,11 @@ export class AuthService {
         data: {
           ...user,
           password: await hashPassword(user.password),
+          profile: {
+            create: {
+              bio: user.bio || '',
+            },
+          },
         },
       });
 
@@ -55,25 +67,26 @@ export class AuthService {
           id: newUser.id,
           email: newUser.email,
           name: newUser.name,
-          role: newUser.role
-        }
+          role: newUser.role,
+        },
       };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError', {
-          args: { error: error.message }
+        await this.i18n.translate('messages.serverError', {
+          args: { error: error.message },
         }),
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async login(credentials: LoginAuthDto) {
     try {
-      const { email, password } = credentials;
+      const { password } = credentials;
+      const email = credentials.email.toString().toLowerCase();
       const findUser = await this.prisma.user.findUnique({
         where: { email },
       });
@@ -81,14 +94,14 @@ export class AuthService {
       if (!findUser) {
         throw new HttpException(
           await this.i18n.translate('messages.invalidCredentials'),
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
 
       if (findUser.isDeleted) {
         throw new HttpException(
           await this.i18n.translate('messages.userDeleted'),
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
 
@@ -100,7 +113,7 @@ export class AuthService {
       if (!isCorrectPassword) {
         throw new HttpException(
           await this.i18n.translate('messages.invalidCredentials'),
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
 
@@ -114,13 +127,13 @@ export class AuthService {
 
       return {
         message: await this.i18n.translate('messages.welcome', {
-          args: { name: findUser.name }
+          args: { name: findUser.name },
         }),
         user: {
           id: findUser.id,
           email: findUser.email,
           name: findUser.name,
-          role: findUser.role
+          role: findUser.role,
         },
         token,
       };
@@ -129,8 +142,8 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError'),
-        HttpStatus.INTERNAL_SERVER_ERROR
+        await this.i18n.translate('messages.serverError'),
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -145,7 +158,7 @@ export class AuthService {
       if (!findUser) {
         throw new HttpException(
           await this.i18n.translate('messages.userNotFound'),
-          HttpStatus.NOT_FOUND
+          HttpStatus.NOT_FOUND,
         );
       }
 
@@ -168,15 +181,15 @@ export class AuthService {
 
       return {
         message: await this.i18n.translate('messages.recoveryEmailSent'),
-        status: HttpStatus.OK
+        status: HttpStatus.OK,
       };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError'),
-        HttpStatus.INTERNAL_SERVER_ERROR
+        await this.i18n.translate('messages.serverError'),
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -185,19 +198,19 @@ export class AuthService {
     try {
       console.log('Attempting reset password for user ID:', id);
       const { password, confirmPassword } = resetDto;
-      
+
       if (password !== confirmPassword) {
         throw new HttpException(
           await this.i18n.translate('messages.passwordsDoNotMatch'),
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
-      const findUser = await this.prisma.user.findUnique({ 
-        where: { 
+      const findUser = await this.prisma.user.findUnique({
+        where: {
           id,
-          isDeleted: false 
-        } 
+          isDeleted: false,
+        },
       });
 
       console.log('Found user:', findUser ? 'yes' : 'no');
@@ -205,7 +218,7 @@ export class AuthService {
       if (!findUser) {
         throw new HttpException(
           await this.i18n.translate('messages.userNotFound'),
-          HttpStatus.NOT_FOUND
+          HttpStatus.NOT_FOUND,
         );
       }
 
@@ -216,9 +229,9 @@ export class AuthService {
         },
       });
 
-      return { 
+      return {
         message: await this.i18n.translate('messages.passwordUpdated'),
-        status: HttpStatus.OK
+        status: HttpStatus.OK,
       };
     } catch (error) {
       console.error('Reset password error:', error);
@@ -226,8 +239,8 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError'),
-        HttpStatus.INTERNAL_SERVER_ERROR
+        await this.i18n.translate('messages.serverError'),
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -236,35 +249,34 @@ export class AuthService {
     try {
       console.log('Token recibido:', token);
       const { password, confirmPassword } = resetDto;
-      
+
       if (password !== confirmPassword) {
         throw new HttpException(
           await this.i18n.translate('messages.passwordsDoNotMatch'),
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
       let decodedToken;
       try {
-
         const cleanToken = token.trim().replace(/\.$/, '');
         console.log('Token limpio:', cleanToken);
-        
+
         decodedToken = await this.jwtService.verifyAsync(cleanToken);
         console.log('Token decodificado:', decodedToken);
       } catch (error) {
         console.error('Error al verificar token:', error);
         throw new HttpException(
           await this.i18n.translate('messages.invalidOrExpiredToken'),
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
 
-      const findUser = await this.prisma.user.findUnique({ 
-        where: { 
+      const findUser = await this.prisma.user.findUnique({
+        where: {
           id: decodedToken.id,
-          isDeleted: false 
-        } 
+          isDeleted: false,
+        },
       });
 
       console.log('Found user:', findUser ? 'yes' : 'no');
@@ -272,7 +284,7 @@ export class AuthService {
       if (!findUser) {
         throw new HttpException(
           await this.i18n.translate('messages.userNotFound'),
-          HttpStatus.NOT_FOUND
+          HttpStatus.NOT_FOUND,
         );
       }
 
@@ -283,9 +295,9 @@ export class AuthService {
         },
       });
 
-      return { 
+      return {
         message: await this.i18n.translate('messages.passwordUpdated'),
-        status: HttpStatus.OK
+        status: HttpStatus.OK,
       };
     } catch (error) {
       console.error('Reset password error:', error);
@@ -293,8 +305,8 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        await this.i18n.translate('errors.serverError'),
-        HttpStatus.INTERNAL_SERVER_ERROR
+        await this.i18n.translate('messages.serverError'),
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

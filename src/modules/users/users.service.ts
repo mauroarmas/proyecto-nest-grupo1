@@ -1,5 +1,4 @@
-import { hashPassword } from 'src/utils/encryption';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -13,6 +12,7 @@ import { ExcelService } from '../excel/excel.service';
 import { ExcelColumn } from 'src/common/interfaces';
 import { I18nService } from 'nestjs-i18n';
 import { translate } from 'src/utils/translation';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -21,15 +21,30 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly excelService: ExcelService,
     private readonly i18n: I18nService,
-  ) {}
+  ) { }
   async create(newUser: CreateUserDto) {
     try {
+      const nameRegex = /^[a-zA-Z\s]+$/;
+      if (!nameRegex.test(newUser.name)) {
+        throw new BadRequestException(translate(this.i18n, 'messages.invalidName'));
+      }
+      if (!nameRegex.test(newUser.lastName)) {
+        throw new BadRequestException(translate(this.i18n, 'messages.invalidLastName'));
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(newUser.email)) {
+        throw new BadRequestException(translate(this.i18n, 'messages.invalidEmail'));
+      }
+
+      const email = newUser.email.toString().toLowerCase();
       const findEmail = await this.prisma.user.findUnique({
-        where: { email: newUser.email },
+        where: { email },
       });
       if (findEmail) {
-        throw new Error(translate(this.i18n, 'messages.existingMail'));
+        throw new BadRequestException(translate(this.i18n, 'messages.existingMail'));
       }
+
       const user = await this.prisma.user.create({
         data: {
           ...newUser,
@@ -53,10 +68,11 @@ export class UsersService {
 
   async updateProfile(id: string, updateProfileDto: UpdateUserDto) {
     try {
-      const findUser = await this.prisma.user.findUnique({ where: { id } });
+      const findUser = await this.prisma.user.findUnique({ where: { id }, include: { profile: true } });
       if (!findUser) {
-        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+        throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
+      console.log(findUser)
       const user = await this.prisma.user.update({
         where: { id },
         data: { profile: { update: updateProfileDto } },
@@ -98,11 +114,11 @@ export class UsersService {
           ],
           ...(startDate &&
             endDate && {
-              createdAt: {
-                gte: new Date(startDate),
-                lte: new Date(endDate),
-              },
-            }),
+            createdAt: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }),
           ...(date && {
             createdAt: {
               gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
@@ -135,7 +151,7 @@ export class UsersService {
         include: { profile: true },
       });
       if (!user) {
-        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+        throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
       return user;
     } catch (error) {
@@ -147,7 +163,7 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+        throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
       const user = await this.prisma.user.update({
         where: { id },
@@ -163,7 +179,7 @@ export class UsersService {
     try {
       const findUser = await this.prisma.user.findUnique({ where: { id } });
       if (!findUser) {
-        throw new Error(translate(this.i18n, 'messages.userNotFound'));
+        throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
       }
       const deletedUser = await this.prisma.user.update({
         where: { id },
@@ -188,16 +204,16 @@ export class UsersService {
 
     const fileExtension = file.originalname.split('.').pop().toLowerCase();
     if (!validExtensions.includes(fileExtension)) {
-      throw new Error(translate(this.i18n, 'messages.invalidFileExtension'));
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidFileExtension'));
     }
 
     if (file.size > maxFileSize) {
-      throw new Error(translate(this.i18n, 'messages.fileTooLarge'));
+      throw new BadRequestException(translate(this.i18n, 'messages.fileTooLarge'));
     }
 
     const findUser = await this.prisma.user.findUnique({ where: { id } });
     if (!findUser) {
-      throw new Error(translate(this.i18n, 'messages.userNotFound'));
+      throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
     }
     const { url, key } = await this.awsService.uploadFile(file, id);
     try {
@@ -217,7 +233,7 @@ export class UsersService {
         data: { profileImg: null },
       });
 
-      throw new Error(translate(this.i18n, 'messages.updateError'));
+      throw new BadRequestException(translate(this.i18n, 'messages.updateError'));
     }
   }
 
@@ -273,7 +289,7 @@ export class UsersService {
 
     const fileExtension = fileName.split('.').pop().toLowerCase();
     if (!validExtensions.includes(fileExtension)) {
-      throw new Error(translate(this.i18n, 'messages.invalidFileExtension'));
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidFileExtension'));
     }
 
     const users = await this.excelService.readExcel(buffer);
@@ -306,7 +322,7 @@ export class UsersService {
 
     const saltRounds = parseInt(process.env.HASH_SALT_ROUND, 10);
     if (isNaN(saltRounds)) {
-      throw new Error('HASH_SALT_ROUND must be a valid number');
+      throw new BadRequestException('HASH_SALT_ROUND must be a valid number');
     }
 
 
@@ -318,12 +334,13 @@ export class UsersService {
         .map(async (user) => {
           const password = String(user.password);
           if (typeof password !== 'string') {
-            throw new Error('Password must be a string');
+            throw new BadRequestException('Password must be a string');
           }
-          return{
-          ...user,
-          password: await bcrypt.hash(password, saltRounds),
-        }}),
+          return {
+            ...user,
+            password: await bcrypt.hash(password, saltRounds),
+          }
+        }),
     );
 
     if (usersToCreate.length > 0) {
