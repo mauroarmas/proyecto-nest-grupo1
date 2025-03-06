@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from 'nestjs-i18n';
@@ -18,7 +18,8 @@ import { ChartService } from '../chart/chart.service';
 import { generatePDFBestSeller } from '../printer/documents/sellsAndBSProducts';
 import { ChartConfiguration } from 'chart.js';
 import { generatePDFSells } from '../printer/documents/sellsAndBSProducts';
-
+import { generatePDFincomes } from '../printer/documents/sample.report';
+import { translate } from 'src/utils/translation';
 
 @Injectable()
 export class SaleService {
@@ -30,7 +31,7 @@ export class SaleService {
     private messagingService: MessagingService,
     private configService: ConfigService,
     private readonly chartService: ChartService,
-  ) { }
+  ) {}
 
   async create(createSaleDto: CreateSaleDto, res: Response) {
     try {
@@ -61,7 +62,6 @@ export class SaleService {
       const user = await this.prisma.user.findUnique({
         where: { id: cart.userId },
       });
-
 
       return await this.getBill(sale.id, res, user.email);
     } catch (error) {
@@ -137,7 +137,6 @@ export class SaleService {
       );
     }
   }
-
 
   async findOne(id: string) {
     try {
@@ -296,14 +295,45 @@ export class SaleService {
     res.send(pdfBuffer);
   }
 
-  async generateSellsBarChart(): Promise<Buffer> {
+  async incomesByDatePDF(pagination: PaginationArgs): Promise<Buffer> {
+    const { startDate, endDate, date } = pagination || {};
+    const dateObj = new Date(date);
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    if (startDate && isNaN(Date.parse(startDate))) {
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidInitDate'));
+    }
+    if (endDate && isNaN(Date.parse(endDate))) {
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidEndDate'));
+    }
+    if (date && isNaN(Date.parse(date))) {
+      throw new BadRequestException(translate(this.i18n, 'messages.invalidUniqueDate'));
+    }
+
     const sales = await this.prisma.sale.findMany({
-      // where: { status: 'completed' },
-      // select: { id: true, total: true, createdAt: true },
-      orderBy: { createdAt: 'asc' },
-      include: { cart: true },
+      where: {
+        isDeleted: false,
+        ...(startDate &&
+          endDate && {
+            createdAt: {
+              gte: new Date(startDateObj.setUTCHours(0, 0, 0, 0)),
+              lte: new Date(endDateObj.setUTCHours(23, 59, 59, 999)),
+            },
+          }),
+        ...(date && {
+          createdAt: {
+            gte: new Date(dateObj.setUTCHours(0, 0, 0, 0)),
+            lte: new Date(dateObj.setUTCHours(23, 59, 59, 999)),
+          },
+        }),
+      },
+      select: { id: true, createdAt: true, cart: true },
     });
 
+    if (!sales.length) {
+      throw new HttpException('Venta no encontrada', 404);
+    }
     const groupedByDate = {};
 
     sales.forEach((sale) => {
@@ -315,16 +345,17 @@ export class SaleService {
     });
     const labels = Object.keys(groupedByDate);
     const data = Object.values(groupedByDate);
-
-    console.log(groupedByDate);
-    console.log(labels);
-    console.log(data);
+    const total = data.reduce((a, b) => Number(a) + Number(b), 0);
+    const salesData = Object.entries(groupedByDate).map(([date, total]) => ({
+      date,
+      total: Number(total),
+    }));
 
     const chartData = {
       labels,
       datasets: [
         {
-          label: 'Monto Total de Compras',
+          label: `Monto Total de Ventas $${total}`,
           data,
           backgroundColor: '#36A2EB',
         },
@@ -337,7 +368,7 @@ export class SaleService {
         legend: { position: 'top' },
         title: {
           display: true,
-          text: 'Compras por Fecha',
+          text: 'Ventas por Fecha',
         },
       },
     };
@@ -348,7 +379,7 @@ export class SaleService {
       chartOptions,
     );
 
-    const pdfDefinition = await generatePDFSells(chartBuffer);
+    const pdfDefinition = await generatePDFincomes(chartBuffer, salesData);
 
     const pdfDoc = await this.printerService.createPdf(pdfDefinition);
 
