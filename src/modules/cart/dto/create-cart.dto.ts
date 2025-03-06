@@ -1,4 +1,4 @@
-import { IsUUID, IsNumber, IsNotEmpty, IsArray } from "class-validator";
+import { IsUUID, IsNumber, IsNotEmpty, IsArray, ArrayMinSize } from "class-validator";
 import { i18nValidationMessage } from "nestjs-i18n";
 import { ApiProperty } from "@nestjs/swagger";
 
@@ -34,5 +34,6 @@ export class CreateCartDto {
   })
   @IsArray({ message: i18nValidationMessage('errors.isArray') })
   @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
+  @ArrayMinSize(1, { message: i18nValidationMessage('errors.arrayMinSize') })
   cartLines: CreateCartLineDto[];
 }

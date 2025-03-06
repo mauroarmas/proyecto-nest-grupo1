@@ -12,5 +12,6 @@
     "isUUID": "{property} must be a valid UUID",
     "isNumber": "{property} must be a valid number",
     "isPhoneNumber": "The phone number must be valid",
-    "isArray": "{property} must be an array"
+    "isArray": "{property} must be an array",
+    "arrayMinSize": "The cart must have at least one product"
 }
