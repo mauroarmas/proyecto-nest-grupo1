@@ -104,7 +104,7 @@ export class SaleController {
     return this.saleService.findAllExcel(res);
   }
 
-  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
+  @Roles(RoleEnum.SUPERADMIN)
   @Get('pdf/incomes-pdf')
   async getIncomes(
     @Res() res: Response,
