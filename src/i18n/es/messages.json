@@ -65,5 +65,6 @@
     "cart": {
         "quantityZero": "La cantidad del producto {product} no puede ser 0",
         "unauthorized": "No tienes permiso para eliminar este carrito"
-    }
+    },
+    "paymentCompleted": "El pago ya ha sido completado"
 }

@@ -17,6 +17,7 @@ import { BrandModule } from '../brand/brand.module';
 import { MessangingModule } from '../messaging/messaging.module';
 import { SaleModule } from '../sale/sale.module';
 import { ChartModule } from '../chart/chart.module';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { ChartModule } from '../chart/chart.module';
     BrandModule,
     MessangingModule,
     SaleModule,
-    ChartModule
+    ChartModule,
+    PaymentModule
   ],
   controllers: [AppController],
   providers: [AppService],
