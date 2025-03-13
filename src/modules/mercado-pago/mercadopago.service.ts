@@ -12,12 +12,12 @@ export class MercadopagoService {
         });
     }
 
-    async createPayment(purchaseId: string, amount: number) {
+    async createPayment(cartId: string, amount: number) {
         const preferenceData: PreferenceRequest = {
             items: [
                 {
-                    id: purchaseId,
-                    title: `Purchase ${purchaseId}`,
+                    id: cartId,
+                    title: `Cart ${cartId}`,
                     unit_price: amount,
                     quantity: 1,
                     currency_id: 'ARS',
@@ -25,7 +25,7 @@ export class MercadopagoService {
             ],
             notification_url: mercadopagoConfig.webhookUrl,
             metadata: {
-                purchaseId,
+                cartId,
             },
         };
 

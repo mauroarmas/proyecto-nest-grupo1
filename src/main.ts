@@ -37,13 +37,11 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new LoggerInterceptor())
 
-  const configService = app.get(ConfigService);
+  setupSwagger(app);
 
+  const configService = app.get(ConfigService);
   const PORT = configService.get<number>('PORT');
   const NODE_ENV = configService.get<string>('NODE_ENV');
-
-  setupSwagger(app);
-  setupSwagger(app);
 
   await app.listen(PORT, () => {
     Logger.log(

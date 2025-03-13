@@ -21,22 +21,28 @@ enum Gender {
   NIÑA
 }
 
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 model User {
-  id          String   @id @default(uuid())
-  name        String
-  lastName    String
-  address     String 
-  phone       String
-  email       String @unique
-  password    String
-  profileImg  String?
-  role        Role       @default(USER)
-  profile     Profile?
-  carts       Cart[]    @relation("UserCarts")
-  purchases   Purchase[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isDeleted   Boolean  @default(false)
+  id         String     @id @default(uuid())
+  name       String
+  lastName   String
+  address    String
+  phone      String
+  email      String     @unique
+  password   String
+  profileImg String?
+  role       Role       @default(USER)
+  profile    Profile?
+  carts      Cart[]     @relation("UserCarts")
+  purchases  Purchase[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  isDeleted  Boolean    @default(false)
 }
 
 model Profile {
@@ -50,19 +56,33 @@ model Profile {
 }
 
 model Cart {
-  id         String      @id @default(uuid())
-  userId     String      
-  status     String      // 'pending', 'completed', 'cancelled'
+  id         String     @id @default(uuid())
+  userId     String
+  status     String // 'pending', 'completed', 'cancelled'
   total      Float
-  isDeleted  Boolean     @default(false)
+  isDeleted  Boolean    @default(false)
   notifiedAt DateTime?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  user       User        @relation("UserCarts", fields: [userId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  user       User       @relation("UserCarts", fields: [userId], references: [id])
   cartLines  CartLine[]
   sale       Sale?
+  payment    Payment?
 
   @@index([userId, isDeleted, status])
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  cartId    String        @unique
+  cart      Cart          @relation(fields: [cartId], references: [id])
+  amount    Float
+  method    String
+  link      String?
+  paymentId String?
+  status    PaymentStatus
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }
 
 model CartLine {
