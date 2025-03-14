@@ -65,5 +65,6 @@
     "cart": {
         "quantityZero": "The quantity of the product {product} cannot be 0",
         "unauthorized": "You do not have permission to delete this cart"
-    }
+    },
+    "paymentCompleted": "Payment has already been completed"
 }

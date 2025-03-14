@@ -10,5 +10,6 @@ import { ChartModule } from '../chart/chart.module';
   imports: [ExcelModule, PrinterModule, MessangingModule, ChartModule],
   controllers: [SaleController],
   providers: [SaleService],
+  exports: [SaleService],
 })
 export class SaleModule { }

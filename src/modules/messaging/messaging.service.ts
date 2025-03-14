@@ -39,6 +39,15 @@ export class MessagingService {
     await this.emailService.send({ from, to, subject, body });
   }
 
+  async sendPaymentLink(input: { from: string; to: string; link: string }) {
+    const { from, to, link } = input;
+    const subject = 'Gracias por confirmar su compra';
+    const body = 'Por favor acceda al siguiente link para completar su compra: ' + link;
+
+
+    await this.emailService.send({ from, to, subject, body });
+  }
+
   async sendBillSale(input: { from: string; to: string; subject: string; body: string; attachments: any[] }) {
     const { from, to, subject, body, attachments } = input;
 
