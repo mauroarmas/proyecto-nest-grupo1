@@ -12,17 +12,21 @@ import { getMessagingConfig } from 'src/common/constants';
 import { ConfigService } from '@nestjs/config';
 import { I18nService } from 'nestjs-i18n';
 import { translate } from 'src/utils/translation';
+import { ChartService } from '../chart/chart.service';
 import { MercadopagoService } from '../mercado-pago/mercadopago.service';
+import { PrinterService } from '../printer/printer.service';
 
 @Injectable()
 export class CartService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly messagingService: MessagingService,
-    private configService: ConfigService,
-    private i18n: I18nService,
-    private mercadopagoService: MercadopagoService,
-  ) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly messagingService: MessagingService,
+        private configService: ConfigService,
+        private i18n: I18nService,
+        private readonly chartService: ChartService,
+        private readonly mercadopagoService: MercadopagoService,
+        private readonly printerService: PrinterService,
+    ) { }
 
   async createCart(createCartDto: CreateCartDto, userId: string) {
     const { cartLines } = createCartDto;
