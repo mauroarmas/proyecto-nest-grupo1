@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Res } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MercadopagoService } from '../mercado-pago/mercadopago.service';
 import { I18nService } from 'nestjs-i18n';
+import { SaleService } from '../sale/sale.service';
+import { CreateSaleDto } from '../sale/dto/create-sale.dto';
+import { Response } from 'express';
+
 
 @Injectable()
 export class PaymentService {
@@ -9,9 +13,10 @@ export class PaymentService {
         private readonly prisma: PrismaService,
         private readonly mercadopagoService: MercadopagoService,
         private readonly i18n: I18nService,
+        private readonly saleService: SaleService
     ) { }
 
-    async mercadopagoWebhook(event: any) {
+    async mercadopagoWebhook(event: any, res: Response ) {
         try {
             if (event.type === 'payment') {
                 const paymentId = event.data.id;
@@ -30,6 +35,7 @@ export class PaymentService {
                             where: { id: cart.payment.id },
                             data: { status: 'COMPLETED', paymentId },
                         });
+                        await this.saleService.create({ cartId }, res);
                         return { message: 'Compra actualizada correctamente' };
                     } else {
                         throw new BadRequestException(this.i18n.translate('messages.invalidNumber'));

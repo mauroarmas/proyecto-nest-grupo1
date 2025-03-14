@@ -1,6 +1,7 @@
-import { Controller, Post, Req, Logger } from '@nestjs/common';
+import { Controller, Post, Req, Logger, Res } from '@nestjs/common';
 import { Request } from 'express';
 import { PaymentService } from './payment.service';
+import { Response } from 'express';
 
 const logger = new Logger('PaymentController');
 
@@ -9,9 +10,9 @@ export class PaymentController {
     constructor(private readonly paymentService: PaymentService) { }
 
     @Post('webhook')
-    async handleWebhook(@Req() req: Request) {
+    async handleWebhook(@Req() req: Request, @Res() res: Response) {
         logger.log(req);
         const event = req.body;
-        return this.paymentService.mercadopagoWebhook(event);
+        return this.paymentService.mercadopagoWebhook(event, res);
     }
 }

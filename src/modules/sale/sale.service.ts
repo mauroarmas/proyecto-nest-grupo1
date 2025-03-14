@@ -142,7 +142,11 @@ export class SaleService {
     try {
       const sale = await this.prisma.sale.findUnique({
         where: { id },
-        include: { cart: true },
+        include: {
+          cart: {
+            include: { cartLines: { include: { product: true } }, user: true },
+          },
+        },
       });
 
       if (!sale) {
