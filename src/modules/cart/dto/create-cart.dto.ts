@@ -1,6 +1,7 @@
-import { IsUUID, IsNumber, IsNotEmpty, IsArray, ArrayMinSize } from "class-validator";
+import { IsUUID, IsNumber, IsNotEmpty, IsArray, ArrayMinSize, IsString, IsOptional } from "class-validator";
 import { i18nValidationMessage } from "nestjs-i18n";
 import { ApiProperty } from "@nestjs/swagger";
+import { Discount } from "@prisma/client";
 
 export class CreateCartLineDto {
   @ApiProperty({
@@ -36,4 +37,13 @@ export class CreateCartDto {
   @IsNotEmpty({ message: i18nValidationMessage('errors.isNotEmpty') })
   @ArrayMinSize(1, { message: i18nValidationMessage('errors.arrayMinSize') })
   cartLines: CreateCartLineDto[];
+  
+  @ApiProperty({
+    description: 'Discount code applied to the cart',
+    example: 'SUMMER2025',
+    type: String
+  })
+  @IsOptional()
+  @IsString({ message: i18nValidationMessage('errors.isString') })
+  discountCode?: string;
 }

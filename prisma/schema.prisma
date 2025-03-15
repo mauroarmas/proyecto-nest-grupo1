@@ -69,8 +69,22 @@ model Cart {
   cartLines  CartLine[]
   sale       Sale?
   payment    Payment?
+  discount   Discount?  @relation(fields: [discountId], references: [id])
+  discountId String?
 
   @@index([userId, isDeleted, status])
+}
+
+model Discount {
+  id        String    @id @default(uuid())
+  code      String  @unique
+  discount  Int
+  duration  Int
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  isDeleted Boolean  @default(false)
+
+  carts     Cart[] 
 }
 
 model Payment {
