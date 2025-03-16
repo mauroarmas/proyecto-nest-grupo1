@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MercadopagoService } from '../mercado-pago/mercadopago.service';
 import { I18nService } from 'nestjs-i18n';
 import { SaleService } from '../sale/sale.service';
-import { CreateSaleDto } from '../sale/dto/create-sale.dto';
 import { Response } from 'express';
 
 

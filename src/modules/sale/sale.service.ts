@@ -280,7 +280,6 @@ export class SaleService {
         from: messagingConfig.emailSender,
         to: email,
         subject: 'Factura de compra',
-        body: 'Adjunto encontrarás tu factura en formato PDF.',
         attachments: [
           {
             filename: `factura-${sale.id}.pdf`,
