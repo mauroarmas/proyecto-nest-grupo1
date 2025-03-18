@@ -27,6 +27,12 @@ export class MercadopagoService {
             metadata: {
                 cartId,
             },
+            back_urls: {
+                failure: 'http://localhost:3000/profile',
+                pending: 'http://localhost:3000/profile',
+                success: 'http://localhost:3000/home',
+              },
+              auto_return: "approved",
         };
 
         try {

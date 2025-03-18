@@ -51,7 +51,7 @@ export class SaleController {
     return this.saleService.findAll(pagination);
   }
 
-  @Roles(RoleEnum.SUPERADMIN)
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
   @Get(':id')
   @ApiOperation({ summary: 'Search for a sale by ID' })
   @ApiResponse({

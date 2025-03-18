@@ -204,12 +204,12 @@ export class ProductsService {
 
     const columns: ExcelColumn[] = [
       { header: 'ID del Producto', key: 'id' },
-      { header: 'Nombre', key: 'name' },
-      { header: 'Precio', key: 'price' },
-      { header: 'Stock', key: 'stock' },
-      { header: 'Marca', key: 'brand' },
-      { header: 'Genero', key: 'gender' },
-      { header: 'Categorias', key: 'categories' },
+      { header: 'nombre', key: 'name' },
+      { header: 'precio', key: 'price' },
+      { header: 'stock', key: 'stock' },
+      { header: 'marca', key: 'brand' },
+      { header: 'genero', key: 'gender' },
+      { header: 'categorias', key: 'categories' },
     ];
 
     const formattedProducts = products.map((product) => ({

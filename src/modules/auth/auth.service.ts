@@ -311,7 +311,7 @@ export class AuthService {
     }
   }
 
-  private async createTokens(payload: JwtPayload, expiresIn: string = '15m') {
+  private async createTokens(payload: JwtPayload, expiresIn: string = '24h') {
     return {
       accessToken: await this.jwtService.signAsync(payload, { expiresIn }),
     };
