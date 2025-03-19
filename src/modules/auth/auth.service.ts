@@ -15,6 +15,7 @@ import { getMessagingConfig } from 'src/common/constants';
 import { RecoverPasswordDto, ResetPasswordDto } from './dto/auth.dto';
 import { I18nService } from 'nestjs-i18n';
 import { ConfigService } from '@nestjs/config';
+import { GoogleUserDTO } from './dto/oauth.dto';
 
 @Injectable()
 export class AuthService {
@@ -311,9 +312,51 @@ export class AuthService {
     }
   }
 
-  private async createTokens(payload: JwtPayload, expiresIn: string = '24h') {
+   async createTokens(payload: JwtPayload, expiresIn: string = '24h') {
     return {
       accessToken: await this.jwtService.signAsync(payload, { expiresIn }),
     };
   }
+
+  async validateGoogleUser(googleUser: GoogleUserDTO) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: googleUser.email },
+      });
+  
+      if (user) {
+        console.log('Usuario encontrado en DB:', user);
+        return user;
+      }
+  
+      // Si el usuario no existe, créalo
+      const newUser = await this.prisma.user.create({
+        data: {
+          email: googleUser.email,
+          name: googleUser.name || '',
+          lastName: googleUser.lastName || '',
+          address: googleUser.address || '',
+          phone: googleUser.phone || '',
+          profileImg: googleUser.profileImg || '',
+          password: await hashPassword('defaultPassword'),
+          role: "USER",
+          profile: {
+            create: {
+              bio: googleUser.bio || '',
+            },
+          },
+        },
+      });
+  
+      console.log('Usuario creado en DB:', newUser);
+      return {...newUser,
+        id: newUser.id,
+        role: newUser.role,
+      };
+    } catch (error) {
+      console.error('Error durante la validación del usuario de Google:', error);
+      throw new Error('Error en la validación del usuario.');
+    }
+  }
+  
 }
