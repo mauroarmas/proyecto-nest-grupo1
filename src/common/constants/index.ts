@@ -31,3 +31,8 @@ export const awsConfig = {
     socket: parseInt(env.AWS_SOCKET_TIMEOUT)
   }
 } as const
+
+export const mercadopagoConfig = {
+  accessToken: env.MERCADOPAGO_ACCESS_TOKEN,
+  webhookUrl: env.MERCADOPAGO_WEBHOOK_URL,
+};

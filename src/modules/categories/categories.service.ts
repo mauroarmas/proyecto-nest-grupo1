@@ -23,7 +23,7 @@ export class CategoriesService {
       throw new BadRequestException(this.i18n.translate('messages.categoryDuplicated'));
     }
 
-    const invalidCharacters = /[^a-zA-Z0-9\s]/;
+    const invalidCharacters = /[^\p{L}\p{N}\s]/u;  // \p{L} = cualquier letra, \p{N} = cualquier número
     if (invalidCharacters.test(name)) {
       throw new BadRequestException(this.i18n.translate('messages.categoryInvalidName'));
     }

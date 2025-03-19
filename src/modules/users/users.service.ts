@@ -147,7 +147,9 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
-        include: { profile: true },
+        include: { profile: true, carts: {
+          include: { cartLines: { include: { product: true } }, user: true, payment: true },
+        }, },
       });
       if (!user) {
         throw new NotFoundException(translate(this.i18n, 'messages.userNotFound'));
