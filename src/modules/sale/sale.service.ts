@@ -190,7 +190,9 @@ export class SaleService {
             userId,
           },
         },
-        include: { cart: true },
+        include: { cart: {
+          include: { cartLines: { include: { product: true } }, user: true },
+        }, },
       });
     } catch (error) {
       if (error instanceof HttpException) {

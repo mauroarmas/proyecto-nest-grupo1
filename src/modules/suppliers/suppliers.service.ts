@@ -315,11 +315,11 @@ export class SuppliersService {
 
       const columns: ExcelColumn[] = [
         { header: 'Id', key: 'id' },
-        { header: 'CUIT', key: 'taxId' },
-        { header: 'Nombre', key: 'name' },
-        { header: 'Email', key: 'email' },
-        { header: 'Telefono', key: 'phone' },
-        { header: 'Categorias', key: 'categories' },
+        { header: 'cuit', key: 'taxId' },
+        { header: 'nombre', key: 'name' },
+        { header: 'email', key: 'email' },
+        { header: 'telefono', key: 'phone' },
+        { header: 'categorias', key: 'categories' },
       ];
 
       const workbook = await this.excelService.generateExcel(

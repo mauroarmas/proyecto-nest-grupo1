@@ -221,12 +221,12 @@ export class PurchaseService {
 
 
       const columns: ExcelColumn[] = [
-        { header: 'Compra', key: 'id' },
-        { header: 'Usuario', key: 'userId' },
-        { header: 'Proveedor', key: 'supplierId' },
-        { header: 'Total', key: 'total' },
-        { header: 'Fecha', key: 'createdAt' },
-        { header: 'Productos (Cantidad)', key: 'products' },
+        { header: 'compra', key: 'id' },
+        { header: 'usuario', key: 'userId' },
+        { header: 'proveedor', key: 'supplierId' },
+        { header: 'total', key: 'total' },
+        { header: 'fecha', key: 'createdAt' },
+        { header: 'productos (Cantidad)', key: 'products' },
       ];
 
       const formattedPurchases = purchases.map((purchase) => ({
