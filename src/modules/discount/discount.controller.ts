@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiTags } from '@nestjs/swagger';
@@ -17,5 +17,14 @@ export class DiscountController {
   @Post()
   create(@Body() createDiscountDto: CreateDiscountDto) {
     return this.discountService.create(createDiscountDto);
+  }
+
+  @Roles(RoleEnum.SUPERADMIN)
+  @Delete(':id')
+  async deleteDiscount(
+    @Param('id') 
+    id: string
+  ) {
+    return this.discountService.deleteDiscount(id);
   }
 }

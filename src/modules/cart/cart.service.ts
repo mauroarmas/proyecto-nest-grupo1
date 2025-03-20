@@ -149,8 +149,6 @@ export class CartService {
                         code: createCartDto.discountCode
                     }
                 });
-
-                console.log(discount)
                 
                 // if (discount) {
                 //     const discountAmount = (total * discount.discount) / 100; // Aplicar descuento como porcentaje
@@ -171,7 +169,7 @@ export class CartService {
 
                 return await prisma.cart.update({
                     where: { id: activeCart.id },
-                    data: { total: newTotal },
+                    data: { total: newTotal, discountId: discount?.id },
                     include: {
                         cartLines: {
                             include: {
@@ -184,35 +182,56 @@ export class CartService {
         }
 
         return await this.prisma.$transaction(async (prisma) => {
-            const newCart = await prisma.cart.create({
-                data: {
-                    userId,
-                    status: "pending",
-                    total: cartLines.reduce((acc, cartLine) =>
-                        acc + cartLine.quantity * products.find(
-                            (product) => product.id === cartLine.productId
-                        ).price, 0
-                    ),
-                    cartLines: {
-                        create: cartLines.map((cartLine) => ({
-                            productId: cartLine.productId,
-                            quantity: cartLine.quantity,
-                            subtotal: cartLine.quantity * products.find(
+            const discount = createCartDto.discountCode
+            ? await prisma.discount.findUnique({
+                  where: { code: createCartDto.discountCode },
+              })
+            : null;
+
+    
+        let total = cartLines.reduce(
+            (acc, cartLine) =>
+                acc +
+                cartLine.quantity *
+                    products.find((product) => product.id === cartLine.productId)
+                        .price,
+            0
+        );
+        
+        console.log("DESCUENTO", discount)
+    
+        // Aplicar descuento si existe
+        if (discount) {
+            const discountAmount = (total * discount.discount) / 100;
+            total -= discountAmount;
+        }
+    
+        const newCart = await prisma.cart.create({
+            data: {
+                userId,
+                status: 'pending',
+                total, // Usamos el total ya con descuento
+                discountId: discount.id,
+                cartLines: {
+                    create: cartLines.map((cartLine) => ({
+                        productId: cartLine.productId,
+                        quantity: cartLine.quantity,
+                        subtotal:
+                            cartLine.quantity *
+                            products.find(
                                 (product) => product.id === cartLine.productId
                             ).price,
-                        })),
+                    })),
+                },
+            },
+            include: {
+                cartLines: {
+                    include: {
+                        product: true,
                     },
                 },
-                include: {
-                    cartLines: {
-                        include: {
-                            product: true
-                        }
-                    }
-                }
-            });
-
-            
+            },
+        });
 
             for (const cartLine of cartLines) {
                 await prisma.product.update({

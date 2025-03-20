@@ -80,6 +80,7 @@ model Discount {
   code      String  @unique
   discount  Int
   duration  Int
+  expiresAt DateTime?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   isDeleted Boolean  @default(false)

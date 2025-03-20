@@ -43,7 +43,7 @@ import { DiscountModule } from '../discount/discount.module';
     SaleModule,
     ChartModule,
     PaymentModule,
-    DiscountModule
+    DiscountModule,
   ],
   controllers: [AppController],
   providers: [AppService],
