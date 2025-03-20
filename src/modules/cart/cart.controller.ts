@@ -13,7 +13,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 export class CartController {
   constructor(private readonly cartService: CartService) { }
 
-  @Roles(RoleEnum.USER)
+  @Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
   @Post()
   @ApiOperation({ summary: 'Create a new cart' })
   @ApiBody({ type: CreateCartDto })
@@ -37,7 +37,7 @@ export class CartController {
     return this.cartService.getCartsByUser(userId);
   }
 
-  @Roles(RoleEnum.USER)
+  @Roles(RoleEnum.USER, RoleEnum.SUPERADMIN)
   @Delete('/:cartId')
   @ApiOperation({ summary: 'Delete a cart by user' })
   @ApiResponse({ status: 200, description: 'Cart deleted successfully' })
