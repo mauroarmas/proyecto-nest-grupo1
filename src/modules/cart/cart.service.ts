@@ -225,7 +225,7 @@ export class CartService {
                 userId,
                 status: 'pending',
                 total, // Usamos el total ya con descuento
-                discountId: discount.id,
+                discountId: discount?.id,
                 cartLines: {
                     create: cartLines.map((cartLine) => ({
                         productId: cartLine.productId,

@@ -146,7 +146,7 @@ async googleCallback(@Req() req, @Res() res) {
 
     // Enviar respuesta con token y usuario al frontend
     return res.redirect(
-      `http://localhost:3000?token=${token.accessToken}&id=${user.id}&role=${user.role}&email=${user.email}&name=${user.name}`
+      `https://front-e-commerce-vortex.vercel.app?token=${token.accessToken}&id=${user.id}&role=${user.role}&email=${user.email}&name=${user.name}`
     );
   } catch (error) {
     console.error('Error en googleCallback:', error);
