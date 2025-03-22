@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiTags } from '@nestjs/swagger';
@@ -12,6 +12,18 @@ import { CreateDiscountDto } from './dto/create-discount';
 @Controller('discount')
 export class DiscountController {
   constructor(private readonly discountService: DiscountService) {}
+
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
+  @Get()
+  findAll() {
+    return this.discountService.findAll();
+  }
+
+  @Roles(RoleEnum.SUPERADMIN, RoleEnum.USER)
+  @Get(':code')
+  async findOne (@Param('code') code: string) {
+    return await this.discountService.findOne(code);
+  }
 
   @Roles(RoleEnum.SUPERADMIN)
   @Post()

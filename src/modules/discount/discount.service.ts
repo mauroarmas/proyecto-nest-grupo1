@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from 'nestjs-i18n';
 import { CreateDiscountDto } from './dto/create-discount';
@@ -10,6 +14,20 @@ export class DiscountService {
     private readonly prisma: PrismaService,
     private readonly i18n: I18nService,
   ) {}
+
+  async findAll() {
+    return await this.prisma.discount.findMany({ where: {
+      isDeleted: false
+    }});
+  }
+
+  async findOne(code: string) {
+    const discount = await this.prisma.discount.findUnique({ where: { code }  });
+    if (!discount) {
+      throw new NotFoundException('Discount not found');
+    }
+    return discount;
+  }
 
   async create(createDiscountDto: CreateDiscountDto) {
     const { code, discount, duration } = createDiscountDto;
@@ -42,7 +60,6 @@ export class DiscountService {
 
   @Cron('0 0 * * *') // Ejecuta la tarea todos los días a la medianoche
   async handleDuration() {
-
     const today = new Date();
 
     // Buscar descuentos que han expirado
@@ -57,17 +74,16 @@ export class DiscountService {
     }
 
     // Eliminar descuentos expirados
-    const discountIds = expiredDiscounts.map(d => d.id);
+    const discountIds = expiredDiscounts.map((d) => d.id);
     await this.prisma.discount.deleteMany({
-      where: { id: { in: discountIds } }
+      where: { id: { in: discountIds } },
     });
   }
-
 
   async deleteDiscount(id: string) {
     // Verifica si el descuento existe antes de eliminarlo
     const discount = await this.prisma.discount.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!discount) {
@@ -76,10 +92,8 @@ export class DiscountService {
 
     const updatedDiscount = await this.prisma.discount.update({
       where: { id: id },
-      data: {isDeleted: true}
+      data: { isDeleted: true },
     });
-
-    
 
     return updatedDiscount;
   }

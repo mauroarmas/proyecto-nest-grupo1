@@ -1,7 +1,18 @@
 import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
 
-export const corsOptions: CorsOptions = {
-  origin: ['http://localhost:3000', '*'],
+export const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://front-e-commerce-vortex.vercel.app',
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true); // Permitir la petición
+    } else {
+      callback(new Error('Not allowed by CORS')); // Bloquear la petición
+    }
+  },
   credentials: true,
   allowedHeaders: [
     'x-requested-with',
@@ -10,5 +21,5 @@ export const corsOptions: CorsOptions = {
   ],
   methods: 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
   preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
-  

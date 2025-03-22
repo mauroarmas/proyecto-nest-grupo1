@@ -7,13 +7,15 @@ import { getMessagingConfig } from 'src/common/constants';
 import { ConfigService } from '@nestjs/config';
 import { I18nService } from 'nestjs-i18n';
 import { translate } from 'src/utils/translation';
+import { MercadopagoService } from '../mercado-pago/mercadopago.service';
 
 @Injectable()
 export class CartService {
     constructor(private readonly prisma: PrismaService,
         private readonly messagingService: MessagingService,
         private configService: ConfigService,
-        private i18n: I18nService
+        private i18n: I18nService,
+        private readonly mercadopagoService: MercadopagoService,
     ) { }
 
     async createCart(createCartDto: CreateCartDto, userId: string) {
@@ -165,7 +167,18 @@ export class CartService {
                     newTotal = previousTotal - discountAmount; // Descontamos el monto
                 }
 
+                const mercadopagoResult = await this.mercadopagoService.createPayment(
+                    activeCart.id,
+                    newTotal,
+                  );
                 
+                  await prisma.payment.update({
+                    where: { cartId: activeCart.id },
+                    data: {
+                      amount: newTotal,
+                      link: mercadopagoResult.init_point,
+                    },
+                  });
 
                 return await prisma.cart.update({
                     where: { id: activeCart.id },
@@ -175,7 +188,8 @@ export class CartService {
                             include: {
                                 product: true
                             }
-                        }
+                        },
+                        payment: true
                     }
                 });
             });
@@ -230,8 +244,23 @@ export class CartService {
                         product: true,
                     },
                 },
+                user: true,
             },
         });
+
+        const mercadopagoResult = await this.mercadopagoService.createPayment(
+            newCart.id,
+            newCart.total,
+          );
+          const payment = await prisma.payment.create({
+            data: {
+              cartId: newCart.id,
+              amount: newCart.total,
+              status: 'PENDING',
+              method: 'mercadopago',
+              link: mercadopagoResult.init_point,
+            },
+          });
 
             for (const cartLine of cartLines) {
                 await prisma.product.update({
@@ -244,7 +273,7 @@ export class CartService {
                 });
             }
 
-            return newCart;
+            return {newCart, payment};
         });
     }
 
