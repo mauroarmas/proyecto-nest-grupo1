@@ -55,6 +55,7 @@ export class SuppliersService {
             })),
           },
         },
+        include: { categories: true },
       });
 
       return {

@@ -58,6 +58,7 @@ export class ImgProductsService {
       const product = await this.prisma.product.update({
         where: { id: productId },
         data: { images: { create: urls.map(url => ({ url })) } },
+        include: { images: true },
       })
 
       return { product, message: translate(this.i18n, 'messages.uploadImages') };
